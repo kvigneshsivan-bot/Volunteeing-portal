@@ -79,7 +79,6 @@
         <img src="./assets/maatram-logo.png" alt="Maatram Foundation" />
       </a>
       <div class="topbar-actions">
-        <button class="icon-button" id="notificationsButton" aria-label="View notifications">🔔<span class="notification-dot"></span></button>
         <button class="profile-button" id="logoutButton" aria-label="Log out"><span class="avatar" id="avatar">VK</span><span class="profile-name" id="profileName">Vignesh Kumar</span><span aria-hidden="true">⌄</span></button>
       </div>
     </header>
@@ -832,10 +831,6 @@
         password.type = showing ? 'password' : 'text';
         document.querySelector('#togglePassword').textContent = showing ? 'Show' : 'Hide';
         document.querySelector('#togglePassword').setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
-      });
-
-      document.querySelector('#notificationsButton').addEventListener('click', () => {
-        document.querySelector('#history').scrollIntoView({ behavior: 'smooth' });
       });
 
       document.querySelectorAll('.nav-link[data-page]').forEach((link) => link.addEventListener('click', (event) => {

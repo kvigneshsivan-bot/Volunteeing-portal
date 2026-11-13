@@ -250,28 +250,11 @@ a {
   gap: 24px;
 }
 
-.icon-button,
 .profile-button {
   border: 0;
   background: transparent;
   color: inherit;
   cursor: pointer;
-}
-
-.icon-button {
-  font-size: 19px;
-  position: relative;
-}
-
-.notification-dot {
-  position: absolute;
-  background: var(--yellow);
-  border: 2px solid var(--white);
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  right: -3px;
-  top: -3px;
 }
 
 .profile-button {

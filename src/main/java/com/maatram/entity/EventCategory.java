@@ -1,0 +1,13 @@
+package com.maatram.entity;
+
+public enum EventCategory {
+    PHYSICAL_VERIFICATION,
+    SCHOOL_VISIT,
+    OFFLINE_ADMISSION,
+    KARPOM_KARPIPPOM,
+    SANGAMAM,
+    JOY_OF_GIVING,
+    COLLEGE_ADMISSION,
+    ALUMNI_DAY,
+    SEED_PLANTING
+}

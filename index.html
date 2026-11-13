@@ -1,0 +1,903 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Maatram Foundation volunteer platform" />
+    <title>Maatram Foundation | Volunteer Hub</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="login-page" id="loginPage">
+      <section class="login-card" aria-labelledby="loginTitle">
+        <div class="login-brand">
+          <img src="./assets/maatram-logo.png" alt="Maatram Foundation" />
+        </div>
+        <p class="eyebrow">Volunteer portal</p>
+        <h1 id="loginTitle">Welcome to Maatram</h1>
+        <p class="login-intro" id="loginIntro">Sign in with your email, then save your Maatram profile.</p>
+        <form id="loginForm" class="login-form">
+          <div id="credentialsFields" class="credentials-fields">
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" autocomplete="email" placeholder="Enter your email" required />
+            <label for="password">Password</label>
+            <div class="password-field">
+              <input id="password" name="password" type="password" autocomplete="new-password" placeholder="Minimum 8 characters" minlength="8" required />
+              <button id="togglePassword" class="password-toggle" type="button" aria-label="Show password">Show</button>
+            </div>
+          </div>
+          <div class="profile-fields" id="profileFields" hidden>
+          <p class="profile-heading">Complete your Maatram profile</p>
+          <label for="name">Full name</label>
+          <input id="name" name="name" type="text" autocomplete="name" placeholder="Enter your full name" required />
+          <div class="form-row">
+            <div>
+              <label for="year">Year</label>
+              <select id="year" name="year" required>
+                <option value="">Select year</option>
+                <option>1st Year</option>
+                <option>2nd Year</option>
+                <option>3rd Year</option>
+                <option>4th Year</option>
+                <option>Final Year</option>
+              </select>
+            </div>
+            <div>
+              <label for="department">Department</label>
+              <input id="department" name="department" type="text" placeholder="e.g. CSE" required />
+            </div>
+          </div>
+          <label for="maatramId">Maatram ID</label>
+          <input id="maatramId" name="maatramId" type="text" placeholder="Enter your Maatram ID" required />
+          <label for="college">College</label>
+          <input id="college" name="college" type="text" placeholder="Enter your college name" required />
+          <div class="form-row">
+            <div>
+              <label for="zone">Zone</label>
+              <input id="zone" name="zone" type="text" placeholder="Enter your Zone" required />
+            </div>
+            <div>
+              <label for="zoneInchargeName">Zone In-charge Name</label>
+              <input id="zoneInchargeName" name="zoneInchargeName" type="text" placeholder="Enter Zone In-charge name" required />
+            </div>
+          </div>
+          <label for="profilePhoto">Profile photo <span class="optional-label">(optional)</span></label>
+          <input id="profilePhoto" name="profilePhoto" type="file" accept="image/*" />
+          </div>
+          <p class="form-error" id="formError" role="alert"></p>
+          <button class="primary-button login-button" type="submit"><span id="submitLabel">Continue</span> <span>→</span></button>
+        </form>
+        <button class="google-button" id="googleLoginButton" type="button">Continue with Google</button>
+        <p class="login-status" id="loginStatus">Google login will be enabled after an OAuth Client ID is configured.</p>
+        <p class="login-note">Your details are used only to personalize this dashboard.</p>
+      </section>
+    </main>
+
+    <div id="app" hidden>
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="Maatram Foundation home">
+        <img src="./assets/maatram-logo.png" alt="Maatram Foundation" />
+      </a>
+      <div class="topbar-actions">
+        <button class="icon-button" id="notificationsButton" aria-label="View notifications">🔔<span class="notification-dot"></span></button>
+        <button class="profile-button" id="logoutButton" aria-label="Log out"><span class="avatar" id="avatar">VK</span><span class="profile-name" id="profileName">Vignesh Kumar</span><span aria-hidden="true">⌄</span></button>
+      </div>
+    </header>
+
+    <div class="app-shell">
+      <aside class="sidebar">
+        <nav aria-label="Main navigation">
+          <p class="nav-label">Workspace</p>
+          <a class="nav-link active" href="#dashboard" data-page="home"><span>▦</span> Home</a>
+          <a class="nav-link" href="#eventsPage" data-page="events"><span>⌕</span> Events</a>
+          <a class="nav-link" href="#activitiesPage" data-page="activities"><span>✓</span> My activities</a>
+          <p class="nav-label">My progress</p>
+          <a class="nav-link" href="#leaderboardPage" data-page="leaderboard"><span>✦</span> Leaderboard</a>
+          <a class="nav-link" href="#activitiesPage" data-page="activities"><span>◇</span> Achievements</a>
+          <p class="nav-label">Management</p>
+          <a class="nav-link role-organiser" href="#organiserPage" data-page="organiser"><span>◎</span> Organiser dashboard</a>
+          <a class="nav-link role-super-admin" href="#adminPage" data-page="admin"><span>⚙</span> Admin dashboard</a>
+          <a class="nav-link role-zone" href="#zonePage" data-page="zone"><span>⌂</span> Zone dashboard</a>
+        </nav>
+        <div class="sidebar-footer">
+          <div class="help-card"><strong>Need a hand?</strong><span>Our team is here for you.</span><a href="#support">Contact support →</a></div>
+          <a class="nav-link" href="#settings"><span>⚙</span> Settings</a>
+        </div>
+      </aside>
+
+      <main class="content" id="dashboard">
+        <div class="welcome-row">
+          <div><p class="eyebrow">Sunday, 08 November 2026</p><h1>Good evening, <span id="welcomeName">Vignesh</span><span>.</span></h1><p class="intro">Small acts create lasting change. Here’s your impact at a glance.</p><p class="zone-summary" id="zoneSummary"></p></div>
+        </div>
+
+        <section class="stats-grid" aria-label="Your progress" hidden>
+          <article class="stat-card highlight"><div class="stat-icon">✦</div><p>Gratitude points</p><strong id="pointsValue">0</strong><small id="pointsChange">Start your impact journey</small></article>
+          <article class="stat-card"><div class="stat-icon muted">◷</div><p>Volunteering hours</p><strong id="hoursValue">0</strong><small id="activitiesValue">No activities yet</small></article>
+          <article class="stat-card"><div class="stat-icon muted">♧</div><p>Current level</p><strong id="levelValue">Seedling</strong><div class="progress"><span id="levelProgress" style="width: 0%"></span></div><small id="nextLevelValue">100 points to Growing Volunteer</small></article>
+          <article class="stat-card"><div class="stat-icon muted">♨</div><p>Active streak</p><strong>3 weeks</strong><small>Keep it going!</small></article>
+        </section>
+
+        <section class="announcement-feed" id="announcementFeedSection">
+          <div class="section-heading"><div><p class="eyebrow">Volunteer requirements</p><h2>Join an upcoming event</h2></div></div>
+          <div id="announcementFeed"><p class="muted">No volunteer requirements have been published yet.</p></div>
+        </section>
+
+        <section class="volunteer-post-feed" id="volunteerPostFeedSection">
+          <div class="section-heading"><div><p class="eyebrow">Community contributions</p><h2>Volunteer stories</h2></div></div>
+          <div id="volunteerPostFeed"><p class="muted">Volunteer contributions will appear here after they are posted.</p></div>
+        </section>
+
+        <div class="section-heading" id="opportunities"><div><p class="eyebrow">Make a difference</p><h2>Types of volunteering</h2></div></div>
+        <section class="volunteer-types" aria-label="Types of volunteering">
+          <button class="volunteer-type-card" data-type="Education" type="button"><span class="type-icon">✦</span><strong>Education</strong><small>Learning and school support</small><span class="type-arrow">→</span></button>
+          <button class="volunteer-type-card" data-type="Admissions" type="button"><span class="type-icon">▤</span><strong>Admissions</strong><small>Guide students and families</small><span class="type-arrow">→</span></button>
+          <button class="volunteer-type-card" data-type="Community" type="button"><span class="type-icon">♧</span><strong>Community</strong><small>People, events and giving</small><span class="type-arrow">→</span></button>
+          <button class="volunteer-type-card" data-type="Environment" type="button"><span class="type-icon">♨</span><strong>Environment</strong><small>Care for our surroundings</small><span class="type-arrow">→</span></button>
+          <button class="volunteer-type-card" data-type="Online" type="button"><span class="type-icon">⌁</span><strong>Online volunteering</strong><small>Support people through digital work</small><span class="type-arrow">→</span></button>
+        </section>
+        <section class="leaderboard-panel" aria-label="Volunteer leaderboard">
+          <div class="leaderboard-summary">
+            <span>🪙 <strong id="leaderboardPoints">0</strong></span>
+            <span>🔥 <strong>0</strong></span>
+            <span>🏆 <strong>—</strong></span>
+          </div>
+          <div class="leaderboard-tabs" aria-label="Leaderboard views">
+            <button class="leaderboard-tab active" data-leaderboard-view="tracker" type="button">Monthly Tracker</button>
+            <button class="leaderboard-tab" data-leaderboard-view="leaderboard" type="button">Leaderboard</button>
+            <button class="leaderboard-tab" data-leaderboard-view="badges" type="button">Badges</button>
+          </div>
+          <div class="leaderboard-view active" data-leaderboard-content="tracker">
+            <div class="tracker-heading"><p class="eyebrow">November 2026</p><select aria-label="Tracker period"><option>Daily</option><option>Weekly</option><option>Monthly</option></select></div>
+            <div class="tracker-days" aria-label="November activity tracker"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span><span>23</span><span>24</span><span>25</span><span>26</span><span>27</span><span>28</span><span>29</span><span>30</span></div>
+            <div class="tracker-legend"><span><i class="missed"></i> Missed</span><span><i class="achieved"></i> Achieved</span><span><i class="holiday"></i> Holiday</span></div>
+          </div>
+          <div class="leaderboard-view" data-leaderboard-content="leaderboard" hidden>
+            <div class="leaderboard-heading">
+              <div><p class="eyebrow">November 2026</p><h2>Silver League</h2></div>
+              <span class="league-badge">✦</span>
+            </div>
+            <div class="leaderboard-row current">
+              <span>1</span>
+              <span class="leaderboard-avatar" id="leaderboardAvatar">VK</span>
+              <strong id="leaderboardName">Vignesh K</strong>
+              <b>🪙 <span id="leaderboardRowPoints">0</span></b>
+            </div>
+            <p class="leaderboard-note">Complete volunteer activities to climb the leaderboard.</p>
+          </div>
+          <div class="leaderboard-view badge-view" data-leaderboard-content="badges" hidden>
+            <div class="leaderboard-heading">
+              <div><p class="eyebrow">Your achievements</p><h2>Volunteer badges</h2></div>
+              <span class="league-badge">✦</span>
+            </div>
+            <div class="badge-grid">
+              <span><i>✦</i> First activity</span>
+              <span><i>5</i> Five activities</span>
+              <span><i>100</i> 100 points</span>
+              <span><i>♧</i> Community helper</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="activity-workspace panel" id="activityWorkspace" hidden>
+          <div class="panel-heading">
+            <div><p class="eyebrow">Volunteer evidence</p><h2 id="folderTitle">Activity evidence</h2></div>
+            <button class="back-button" id="closeActivityFolder" type="button">← Back to opportunities</button>
+          </div>
+          <div class="folder-summary">
+            <div><span class="folder-icon">✦</span><div><p class="category" id="folderCategory">Education</p><p class="folder-meta" id="folderMeta"></p></div></div>
+            <p id="folderDescription"></p>
+          </div>
+          <div class="folder-proof">
+            <div><p class="eyebrow">Activity post</p><h3>Share your volunteering contribution</h3></div>
+            <p class="upload-copy">Describe what you did and upload at least 3 proof photos before posting.</p>
+            <label class="evidence-label" for="evidenceNotes">What did you do?</label>
+            <textarea class="evidence-notes" id="evidenceNotes" placeholder="Write a short note about your volunteer work..." rows="4"></textarea>
+          <label class="upload-dropzone" for="proofPhotos">
+            <span class="upload-camera">▧</span>
+            <strong>Choose proof photos</strong>
+            <small>Select 3 or more JPG, PNG or WEBP photos · Maximum 5 MB each</small>
+          </label>
+          <input id="proofPhotos" class="visually-hidden" type="file" accept="image/jpeg,image/png,image/webp" multiple />
+          <div class="upload-preview" id="uploadPreview" hidden>
+            <img id="proofPreviewImage" alt="Selected volunteering proof preview" />
+            <div><strong id="proofFileName"></strong><p id="uploadStatus">Ready to submit</p></div>
+            <button class="secondary-button" id="removeProof" type="button">Remove</button>
+          </div>
+          <p class="form-error" id="uploadError" role="alert"></p>
+          <button class="primary-button submit-proof" id="submitProof" type="button">Post volunteering contribution <span>→</span></button>
+          </div>
+        </section>
+
+        <section class="lower-grid" hidden>
+          <article class="panel" id="history"><div class="panel-heading"><div><p class="eyebrow">Your journey</p><h2>Recent activity</h2></div><a href="#history">See history →</a></div><div id="activityList"><p class="muted">Your registered and completed activities will appear here.</p></div></article>
+          <article class="panel level-panel" id="points"><div class="panel-heading"><div><p class="eyebrow">Your progress</p><h2>Next milestone</h2></div><span class="milestone-icon">✦</span></div><div class="milestone"><strong id="milestoneName">Growing Volunteer</strong><span id="milestonePoints">0 / 100 points</span></div><div class="progress large"><span id="milestoneProgress" style="width: 0%"></span></div><p class="muted" id="milestoneCopy">100 more points to unlock your next level.</p><button class="secondary-button" id="editProfileButton" type="button">Edit profile</button></article>
+        </section>
+
+        <section class="app-page" id="eventsPage" hidden>
+          <div class="page-heading"><div><p class="eyebrow">Discover opportunities</p><h1>Events</h1><p class="intro">Find a volunteering activity that matches your interests.</p></div></div>
+          <div class="page-filters"><input id="eventSearch" type="search" placeholder="Search Admin events..." aria-label="Search Admin events" /></div>
+          <div class="event-page-grid" id="eventPageList"></div>
+        </section>
+
+        <section class="app-page" id="activitiesPage" hidden>
+          <div class="page-heading"><div><p class="eyebrow">Your journey</p><h1>My activities</h1><p class="intro">See the positive difference your verified volunteering creates in society.</p></div></div>
+          <section class="impact-summary">
+            <div class="impact-summary-heading"><div><p class="eyebrow">Social impact dashboard</p><h2>My Impact on Society</h2></div><span class="impact-icon">✦</span></div>
+            <div class="impact-stat-grid">
+              <article><span>School visits</span><strong id="impactSchoolVisits">0</strong><small>Successfully completed</small></article>
+              <article><span>Physical verifications</span><strong id="impactPhysicalVerifications">0</strong><small>Admin approved</small></article>
+              <article><span>Activities participated</span><strong id="impactActivities">0</strong><small>Verified contributions</small></article>
+              <article><span>Hours contributed</span><strong id="impactHours">0</strong><small>Community time</small></article>
+              <article><span>Events completed</span><strong id="impactEvents">0</strong><small>Successfully completed</small></article>
+              <article><span>Beneficiaries reached</span><strong id="impactBeneficiaries">—</strong><small>Verified data only</small></article>
+            </div>
+          </section>
+          <div class="achievement-grid">
+            <article class="achievement-card school-achievement"><div class="achievement-card-heading"><div><p class="eyebrow">School Visit Achievement</p><h2 id="schoolLevel">Starter</h2></div><span class="achievement-badge">B</span></div><p><strong id="schoolCount">0</strong> approved school visits</p><div class="achievement-progress"><span id="schoolProgress"></span></div><small id="schoolNext">10 visits to Bronze</small></article>
+            <article class="achievement-card physical-achievement"><div class="achievement-card-heading"><div><p class="eyebrow">Physical Verification Achievement</p><h2 id="physicalLevel">Starter</h2></div><span class="achievement-badge">B</span></div><p><strong id="physicalCount">0</strong> approved physical verifications</p><div class="achievement-progress"><span id="physicalProgress"></span></div><small id="physicalNext">25 verifications to Bronze</small></article>
+          </div>
+          <section class="impact-timeline"><div class="section-heading"><div><p class="eyebrow">Verified contribution history</p><h2>Social Impact Timeline</h2></div></div><div id="impactTimeline"><p class="muted">Approved contributions will appear here.</p></div></section>
+          <div class="activity-page-list" id="myActivitiesList" hidden></div>
+        </section>
+
+        <section class="app-page" id="volunteerDetailsPage" hidden>
+          <div class="page-heading"><div><p class="eyebrow">Available volunteering</p><h1 id="volunteerDetailsTitle">Volunteering details</h1><p class="intro">Choose an activity to learn more about the volunteering opportunity.</p></div><button class="back-button" id="backToHomeFromVolunteering" type="button">← Back to Home</button></div>
+          <div class="volunteer-detail-grid" id="volunteerDetailsList"></div>
+        </section>
+
+        <section class="app-page" id="leaderboardPage" hidden>
+          <div class="page-heading"><div><p class="eyebrow">Recognition</p><h1>Leaderboard & achievements</h1><p class="intro">Celebrate volunteers making a difference.</p></div></div>
+          <div class="leaderboard-full-card"><h2>Overall leaderboard</h2><div id="leaderboardPageList"><p class="muted">Complete activities to appear on the leaderboard.</p></div></div>
+          <div class="badge-page-grid"><article><strong>First Activity</strong><span>Complete your first verified activity.</span></article><article><strong>100 Points</strong><span>Earn 100 Gratitude Points.</span></article><article><strong>Community Champion</strong><span>Make a lasting community impact.</span></article></div>
+        </section>
+
+        <section class="app-page" id="organiserPage" hidden>
+          <div class="page-heading"><div><p class="eyebrow">NGO workspace</p><h1>Organiser dashboard</h1><p class="intro">Create events, manage registrations, and submit attendance.</p></div></div>
+          <div class="admin-stat-grid"><article class="summary-card"><span>Total events</span><strong id="organiserEventCount">0</strong></article><article class="summary-card"><span>Registrations</span><strong>0</strong></article><article class="summary-card"><span>Pending attendance</span><strong>0</strong></article></div>
+          <div class="management-panel"><h2>Create a volunteering event</h2><p class="muted">Events created by organisers are sent for Super Admin approval before publishing.</p><button class="primary-button" id="createEventButton" type="button">Create event <span>→</span></button></div>
+        </section>
+
+        <section class="app-page" id="zonePage" hidden>
+          <div class="page-heading"><div><p class="eyebrow">Assigned zone</p><h1>Zone dashboard</h1><p class="intro">Review volunteers, attendance, and proof submissions in your assigned Zone.</p></div></div>
+          <div class="admin-stat-grid"><article class="summary-card"><span>Assigned Zone</span><strong>Not assigned</strong></article><article class="summary-card"><span>Zone volunteers</span><strong>0</strong></article><article class="summary-card"><span>Pending verification</span><strong>0</strong></article></div>
+          <div class="management-grid"><article class="management-panel"><h2>Attendance verification</h2><p class="muted">Review organiser attendance for your assigned Zone.</p></article><article class="management-panel"><h2>Proof verification</h2><p class="muted">Approve, reject, or request resubmission with remarks.</p></article></div>
+        </section>
+
+        <section class="app-page" id="adminPage" hidden>
+          <div class="page-heading"><div><p class="eyebrow">Platform control</p><h1>Admin dashboard</h1><p class="intro">Manage users, NGOs, events, approvals, and platform statistics.</p></div></div>
+          <div class="admin-stat-grid"><article class="summary-card"><span>Total volunteers</span><strong id="adminVolunteerCount">1</strong></article><article class="summary-card"><span>Pending NGO approvals</span><strong>0</strong></article><article class="summary-card"><span>Published events</span><strong id="adminEventCount">0</strong></article><article class="summary-card"><span>Verified participation</span><strong>0</strong></article></div>
+          <div class="management-grid"><article class="management-panel"><h2>NGO verification</h2><p class="muted">Review organiser applications and verification documents.</p><button class="secondary-button" type="button">Review applications</button></article><article class="management-panel"><h2>Event approvals</h2><p class="muted">Approve or reject submitted volunteering events.</p><button class="secondary-button" type="button">Review events</button></article></div>
+          <div class="management-panel announcement-admin-panel"><h2>Volunteer requirement announcement</h2><p class="muted">Create a LinkedIn-style event post and publish it on the Home page.</p><form id="announcementForm" class="announcement-form"><input name="title" placeholder="Event title" required /><textarea name="description" placeholder="Event description" required></textarea><div><input name="date" type="date" required /><input name="time" type="time" required /><input name="location" placeholder="Location" required /></div><div><input name="required" type="number" min="1" placeholder="Volunteers required" required /><input name="skills" placeholder="Skills / eligibility" /><input name="deadline" type="date" required /></div><label class="file-upload">Event image or poster<input name="image" id="announcementImage" type="file" accept="image/*" /></label><img id="announcementImagePreview" class="announcement-image-preview" alt="Poster preview" hidden /><textarea name="instructions" placeholder="Additional instructions"></textarea><div class="announcement-form-actions"><button class="primary-button" id="announcementSubmitButton" type="submit">Publish announcement <span>→</span></button><button class="secondary-button" id="cancelAnnouncementEdit" type="button" hidden>Cancel edit</button></div></form><div id="adminAnnouncementList"></div></div>
+        </section>
+      </main>
+    </div>
+    </div>
+    <script>
+      const loginPage = document.querySelector('#loginPage');
+      const app = document.querySelector('#app');
+      const loginForm = document.querySelector('#loginForm');
+      const formError = document.querySelector('#formError');
+      const savedUser = JSON.parse(localStorage.getItem('maatramUser') || 'null');
+      let registrations = JSON.parse(localStorage.getItem('maatramRegistrations') || '[]');
+      let activityHistory = JSON.parse(localStorage.getItem('maatramActivityHistory') || '[]');
+      let savedAccount = JSON.parse(localStorage.getItem('maatramAccount') || 'null');
+      let editingProfile = false;
+      let pendingCredentials = null;
+      let selectedActivity = null;
+      let selectedActivityData = null;
+      let selectedProofFiles = [];
+      let editingAnnouncementId = null;
+      const credentialsFields = document.querySelector('#credentialsFields');
+      const profileFields = document.querySelector('#profileFields');
+      const loginIntro = document.querySelector('#loginIntro');
+      const submitLabel = document.querySelector('#submitLabel');
+
+      function setProfileRequired(required) {
+        profileFields.querySelectorAll('input, select').forEach((field) => {
+          field.required = required;
+        });
+      }
+
+      async function hashPassword(password) {
+        const bytes = new TextEncoder().encode(password);
+        const digest = await crypto.subtle.digest('SHA-256', bytes);
+        return Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, '0')).join('');
+      }
+
+      function prepareLoginForm() {
+        document.querySelector('#password').type = 'password';
+        document.querySelector('#togglePassword').textContent = 'Show';
+        credentialsFields.hidden = false;
+        profileFields.hidden = true;
+        setProfileRequired(false);
+        document.querySelector('#email').required = true;
+        document.querySelector('#password').required = true;
+        document.querySelector('#googleLoginButton').hidden = false;
+        loginIntro.textContent = savedAccount
+          ? 'Enter your email and password to open your saved Maatram profile.'
+          : 'Sign in with your email, then save your Maatram profile.';
+        submitLabel.textContent = savedAccount ? 'Continue to dashboard' : 'Continue';
+      }
+
+      function showProfileStep() {
+        credentialsFields.hidden = true;
+        profileFields.hidden = false;
+        setProfileRequired(true);
+        document.querySelector('#email').required = false;
+        document.querySelector('#password').required = false;
+        document.querySelector('#googleLoginButton').hidden = true;
+        loginIntro.textContent = 'Add your details to complete your Maatram profile.';
+        submitLabel.textContent = 'Save profile & continue';
+        document.querySelector('#name').focus();
+      }
+
+      function showDashboard(user) {
+        loginPage.hidden = true;
+        app.hidden = false;
+        document.querySelector('#welcomeName').textContent = user.name.split(' ')[0];
+        document.querySelector('#profileName').textContent = user.name;
+        document.querySelector('#zoneSummary').textContent = user.zone && user.zoneInchargeName
+          ? `Zone: ${user.zone} · Zone In-charge: ${user.zoneInchargeName}`
+          : 'Zone details are not added yet.';
+        document.querySelector('#leaderboardName').textContent = user.name;
+        const avatar = document.querySelector('#avatar');
+        avatar.textContent = user.name.split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toUpperCase();
+        document.querySelector('#leaderboardAvatar').textContent = avatar.textContent;
+        if (user.profilePhoto) {
+          avatar.textContent = '';
+          avatar.style.backgroundImage = `url("${user.profilePhoto}")`;
+          avatar.style.backgroundSize = 'cover';
+          avatar.style.backgroundPosition = 'center';
+        }
+        applyRoleVisibility();
+        renderDashboard();
+      }
+
+      function getLevel(points) {
+        if (points >= 1000) return ['Legacy Builder', 1000, 1000];
+        if (points >= 600) return ['Community Champion', 600, 1000];
+        if (points >= 300) return ['Change Maker', 300, 600];
+        if (points >= 100) return ['Growing Volunteer', 100, 300];
+        return ['Seedling', 0, 100];
+      }
+
+      function renderDashboard() {
+        const approvedActivities = activityHistory.filter((item) => item.status === 'Approved');
+        const points = approvedActivities.reduce((total, item) => total + item.points, 0);
+        const hours = approvedActivities.reduce((total, item) => total + item.hours, 0);
+        const [level, levelStart, nextLevel] = getLevel(points);
+        const progress = nextLevel === levelStart ? 100 : Math.min(100, ((points - levelStart) / (nextLevel - levelStart)) * 100);
+        document.querySelector('#pointsValue').textContent = points;
+        document.querySelector('#leaderboardPoints').textContent = points;
+        document.querySelector('#leaderboardRowPoints').textContent = points;
+        document.querySelector('#hoursValue').textContent = hours;
+        document.querySelector('#activitiesValue').textContent = `${activityHistory.length} approved activities`;
+        document.querySelector('#levelValue').textContent = level;
+        document.querySelector('#levelProgress').style.width = `${progress}%`;
+        document.querySelector('#nextLevelValue').textContent = points >= 1000 ? 'Highest level reached' : `${nextLevel - points} points to next level`;
+        document.querySelector('#milestoneName').textContent = points >= 1000 ? 'Legacy Builder' : getLevel(points + 1)[0];
+        document.querySelector('#milestonePoints').textContent = `${points} / ${nextLevel} points`;
+        document.querySelector('#milestoneProgress').style.width = `${progress}%`;
+        document.querySelector('#milestoneCopy').textContent = points >= 1000 ? 'You have reached the highest level.' : `${nextLevel - points} more points to unlock your next level.`;
+        document.querySelector('#activityList').innerHTML = activityHistory.length
+          ? activityHistory.slice().reverse().map((item) => `<div class="activity"><span class="activity-icon yellow">${item.status === 'Approved' ? '✓' : '…'}</span><div><strong>${item.name}</strong><p>${item.status} · ${item.date}</p></div><b>${item.status === 'Approved' ? `+${item.points} pts` : 'Pending'}</b></div>`).join('')
+          : '<p class="muted">Your registered and completed activities will appear here.</p>';
+        document.querySelectorAll('.register-button').forEach((button) => {
+          const registered = registrations.some((item) => item.name === button.dataset.activity);
+          button.disabled = registered;
+          button.textContent = registered ? 'Registered' : 'Register';
+        });
+      }
+
+      function currentUser() {
+        return JSON.parse(localStorage.getItem('maatramUser') || 'null') || savedUser || {};
+      }
+
+      function currentRole() {
+        const user = currentUser();
+        const account = JSON.parse(localStorage.getItem('maatramAccount') || 'null') || {};
+        const email = String(user.email || account.email || '').trim().toLowerCase();
+        if (email === 'k.vigneshsivan@gmail.com') return 'SUPER_ADMIN';
+        const role = user.role || account.role || 'VOLUNTEER';
+        return role === 'SUPER_ADMIN' ? 'VOLUNTEER' : role;
+      }
+
+      function applyRoleVisibility() {
+        const role = currentRole();
+        document.querySelectorAll('.role-super-admin').forEach((item) => { item.hidden = role !== 'SUPER_ADMIN'; });
+        document.querySelectorAll('.role-organiser').forEach((item) => { item.hidden = role !== 'ORGANISER'; });
+        document.querySelectorAll('.role-zone').forEach((item) => { item.hidden = !['ZONE_INCHARGE', 'SUPER_ADMIN'].includes(role); });
+      }
+
+      function escapeHTML(value) {
+        return String(value || '').replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
+      }
+
+      function announcementStatus(item) {
+        return Number(item.registrations || 0) >= Number(item.required || 0) ? 'Requirement closed' : 'Volunteers available';
+      }
+
+      const volunteerDetails = [
+        { type: 'Education', name: 'PV Volunteer', description: 'Support meaningful community and education activities.' },
+        { type: 'Education', name: 'School Visit Volunteer', description: 'Visit schools and support children through learning activities.' },
+        { type: 'Education', name: 'Karpoom Karpippoo Volunteer', description: 'Contribute to knowledge-sharing and learning programmes.' },
+        { type: 'Education', name: 'Kadaippoma Volunteer', description: 'Support creative learning and student development activities.' },
+        { type: 'Education', name: 'Aptitude Tutors Volunteer', description: 'Guide students through aptitude learning and preparation.' },
+        { type: 'Admissions', name: 'Offline Admission Volunteer', description: 'Help students and families with offline admission support.' },
+        { type: 'Admissions', name: 'College Admission Volunteer', description: 'Guide students through college admission activities.' },
+        { type: 'Community', name: 'Sangamam Volunteer', description: 'Support community gatherings and social activities.' },
+        { type: 'Community', name: 'Joy of Giving Volunteer', description: 'Help families and communities through giving initiatives.' },
+        { type: 'Community', name: 'Alumni Day Volunteer', description: 'Coordinate and support the Alumni Day programme.' },
+        { type: 'Environment', name: 'Seed Planting Volunteer', description: 'Create greener neighbourhoods through seed planting drives.' },
+        { type: 'Online', name: 'Maatram Edutainment Volunteer', description: 'Support digital educational and awareness content for learners.' },
+        { type: 'Online', name: 'Communication Volunteer', description: 'Help with online communication, outreach, and community updates.' }
+      ];
+
+      function renderVolunteerDetails(type) {
+        const details = volunteerDetails.filter((item) => item.type === type);
+        document.querySelector('#volunteerDetailsTitle').textContent = `${type} volunteering`;
+        document.querySelector('#volunteerDetailsList').innerHTML = details.map((item, index) => `<article class="volunteer-detail-card"><span class="type-icon">${type === 'Environment' ? '♨' : type === 'Community' ? '♧' : type === 'Admissions' ? '▤' : type === 'Online' ? '⌁' : '✦'}</span><div><p class="category">${escapeHTML(item.type)}</p><h3>${escapeHTML(item.name)}</h3><p>${escapeHTML(item.description)}</p><button class="secondary-button open-volunteer-workspace" data-detail-index="${index}" type="button">Add contribution →</button></div></article>`).join('');
+        document.querySelectorAll('.open-volunteer-workspace').forEach((button) => button.addEventListener('click', () => openActivityFolder(details[Number(button.dataset.detailIndex)])));
+        document.querySelector('.nav-link.active')?.classList.remove('active');
+        showPage('volunteerDetails');
+      }
+
+      function renderAnnouncements() {
+        const announcements = JSON.parse(localStorage.getItem('maatramAnnouncements') || '[]').filter((item) => item.published);
+        document.querySelector('#announcementFeed').innerHTML = announcements.length
+          ? announcements.map((item) => `<article class="announcement-card">${item.image ? `<div class="announcement-image-wrap"><img class="announcement-card-image" src="${item.image}" alt="${escapeHTML(item.title)} poster" /><span class="announcement-status ${announcementStatus(item) === 'Requirement closed' ? 'closed' : ''}">${announcementStatus(item)}</span></div>` : ''}<div class="announcement-card-content"><p class="category">Volunteer requirement</p><h3>${escapeHTML(item.title)}</h3><p>${escapeHTML(item.description)}</p><div class="announcement-meta"><span>◷ ${escapeHTML(item.date)} · ${escapeHTML(item.time)}</span><span>📍 ${escapeHTML(item.location)}</span><span>👥 ${item.required} volunteers required · ${item.registrations || 0} registered</span><span>Registration closes: ${escapeHTML(item.deadline)}</span></div>${item.skills ? `<p class="announcement-detail"><strong>Skills / eligibility:</strong> ${escapeHTML(item.skills)}</p>` : ''}${item.instructions ? `<p class="announcement-detail"><strong>Instructions:</strong> ${escapeHTML(item.instructions)}</p>` : ''}<p class="announcement-state ${announcementStatus(item) === 'Requirement closed' ? 'closed' : ''}">${announcementStatus(item)}</p><button class="secondary-button announcement-volunteers" data-announcement-id="${item.id}" type="button">View volunteers</button></div></article>`).join('')
+          : '<p class="muted">No volunteer requirements have been published yet.</p>';
+        document.querySelectorAll('.announcement-volunteers').forEach((button) => button.addEventListener('click', () => showAnnouncementVolunteers(button.dataset.announcementId)));
+        if (document.querySelector('#eventPageList')) renderEventPage();
+      }
+
+      function renderVolunteerPosts() {
+        const posts = JSON.parse(localStorage.getItem('maatramVolunteerPosts') || '[]');
+        document.querySelector('#volunteerPostFeed').innerHTML = posts.length
+          ? posts.slice().reverse().map((post) => `<article class="volunteer-post-card"><div class="volunteer-post-header"><span class="avatar">${escapeHTML((post.author || 'V').split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toUpperCase())}</span><div><strong>${escapeHTML(post.author || 'Volunteer')}</strong><small>${escapeHTML(post.date)} · ${escapeHTML(post.activityType)}</small></div><span class="post-status">${escapeHTML(post.status)}</span></div><h3>${escapeHTML(post.eventName)}</h3><p>${escapeHTML(post.description)}</p><div class="volunteer-post-photos">${(post.photos || []).map((photo) => `<img src="${photo}" alt="Proof from ${escapeHTML(post.eventName)}" />`).join('')}</div></article>`).join('')
+          : '<p class="muted">Volunteer contributions will appear here after they are posted.</p>';
+      }
+
+      function renderAdminAnnouncements() {
+        const announcements = JSON.parse(localStorage.getItem('maatramAnnouncements') || '[]');
+        document.querySelector('#adminAnnouncementList').innerHTML = announcements.length
+          ? announcements.map((item) => `<div class="admin-announcement-row"><strong>${escapeHTML(item.title)}</strong><span>${item.published ? 'Published' : 'Draft'}</span><button class="secondary-button edit-announcement" data-id="${item.id}" type="button">Edit</button><button class="secondary-button toggle-announcement" data-id="${item.id}" type="button">${item.published ? 'Unpublish' : 'Publish'}</button><button class="secondary-button delete-announcement" data-id="${item.id}" type="button">Delete</button></div>`).join('')
+          : '<p class="muted">No announcements created.</p>';
+        document.querySelectorAll('.edit-announcement').forEach((button) => button.addEventListener('click', () => beginAnnouncementEdit(button.dataset.id)));
+        document.querySelectorAll('.toggle-announcement').forEach((button) => button.addEventListener('click', () => {
+          const items = JSON.parse(localStorage.getItem('maatramAnnouncements') || '[]');
+          const item = items.find((entry) => entry.id === button.dataset.id);
+          if (item) item.published = !item.published;
+          localStorage.setItem('maatramAnnouncements', JSON.stringify(items));
+          renderAdminAnnouncements();
+          renderAnnouncements();
+        }));
+        document.querySelectorAll('.delete-announcement').forEach((button) => button.addEventListener('click', () => {
+          const items = JSON.parse(localStorage.getItem('maatramAnnouncements') || '[]').filter((entry) => entry.id !== button.dataset.id);
+          localStorage.setItem('maatramAnnouncements', JSON.stringify(items));
+          renderAdminAnnouncements();
+          renderAnnouncements();
+        }));
+      }
+
+      function resetAnnouncementForm() {
+        editingAnnouncementId = null;
+        document.querySelector('#announcementForm').reset();
+        document.querySelector('#announcementSubmitButton').innerHTML = 'Publish announcement <span>→</span>';
+        document.querySelector('#cancelAnnouncementEdit').hidden = true;
+        document.querySelector('#announcementImagePreview').hidden = true;
+        document.querySelector('#announcementImagePreview').removeAttribute('src');
+      }
+
+      function beginAnnouncementEdit(id) {
+        const item = JSON.parse(localStorage.getItem('maatramAnnouncements') || '[]').find((entry) => entry.id === id);
+        if (!item) return;
+        editingAnnouncementId = id;
+        const form = document.querySelector('#announcementForm');
+        ['title', 'description', 'date', 'time', 'location', 'required', 'skills', 'deadline', 'instructions'].forEach((name) => {
+          form.elements[name].value = item[name] || '';
+        });
+        const preview = document.querySelector('#announcementImagePreview');
+        if (item.image) { preview.src = item.image; preview.hidden = false; }
+        document.querySelector('#announcementSubmitButton').innerHTML = 'Save changes <span>→</span>';
+        document.querySelector('#cancelAnnouncementEdit').hidden = false;
+        form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+
+      function showAnnouncementVolunteers(id) {
+        const announcement = JSON.parse(localStorage.getItem('maatramAnnouncements') || '[]').find((item) => item.id === id);
+        if (!announcement) return;
+        if (!['SUPER_ADMIN', 'ORGANISER', 'ZONE_INCHARGE'].includes(currentRole())) {
+          window.alert('Only authorised organisers, Zone In-charges, and Super Admins can view student contact details.');
+          return;
+        }
+        const volunteers = announcement.volunteers || [];
+        window.alert(volunteers.length ? volunteers.map((item) => `${item.name} · ${item.college} · ${item.mobile} · ${item.year}`).join('\\n') : 'No students have registered for this announcement yet.');
+      }
+
+      function renderEventPage() {
+        const search = document.querySelector('#eventSearch').value.trim().toLowerCase();
+        const events = JSON.parse(localStorage.getItem('maatramAnnouncements') || '[]').filter((item) => item.published).filter((item) => {
+          const text = `${item.title} ${item.description} ${item.location} ${item.skills || ''}`.toLowerCase();
+          return !search || text.includes(search);
+        });
+        document.querySelector('#eventPageList').innerHTML = events.length
+          ? events.map((item) => `<article class="event-page-card">${item.image ? `<img class="event-page-image" src="${item.image}" alt="${escapeHTML(item.title)} poster" />` : ''}<p class="category">Admin announcement</p><h3>${escapeHTML(item.title)}</h3><p>◷ ${escapeHTML(item.date)} · ${escapeHTML(item.time)} · 📍 ${escapeHTML(item.location)}<br>${escapeHTML(item.description)}</p><p class="event-page-requirement">${item.required} volunteers required · ${announcementStatus(item)}</p><small>Registration closes: ${escapeHTML(item.deadline)}</small></article>`).join('')
+          : '<p class="muted">No Admin events have been published yet.</p>';
+      }
+
+      function isSchoolVisit(item) {
+        return /school visit/i.test(`${item.name || ''} ${item.activityType || ''}`) || item.schoolVisit === true;
+      }
+
+      function isPhysicalVerification(item) {
+        return /physical verification/i.test(`${item.name || ''} ${item.activityType || ''}`) || item.physicalVerification === true;
+      }
+
+      function getAchievement(count, thresholds) {
+        const levels = [
+          { name: 'Bronze', target: thresholds[0] },
+          { name: 'Silver', target: thresholds[1] },
+          { name: 'Gold', target: thresholds[2] }
+        ];
+        const achieved = levels.filter((level) => count >= level.target);
+        const current = achieved[achieved.length - 1];
+        const next = levels.find((level) => count < level.target);
+        return {
+          level: current ? current.name : 'Starter',
+          target: next ? next.target : levels[levels.length - 1].target,
+          nextName: next ? next.name : 'Gold',
+          progress: next ? Math.min(100, (count / next.target) * 100) : 100,
+          remaining: next ? Math.max(0, next.target - count) : 0
+        };
+      }
+
+      function renderActivitiesPage() {
+        const items = [...registrations.map((item) => ({ ...item, status: 'Registered' })), ...activityHistory];
+        const approved = activityHistory.filter((item) => item.status === 'Approved').filter((item, index, list) => {
+          const key = item.id || `${item.name || ''}|${item.date || ''}`;
+          return list.findIndex((entry) => (entry.id || `${entry.name || ''}|${entry.date || ''}`) === key) === index;
+        });
+        const schoolVisits = approved.filter(isSchoolVisit).length;
+        const physicalVerifications = approved.filter(isPhysicalVerification).length;
+        const schoolAchievement = getAchievement(schoolVisits, [10, 25, 45]);
+        const physicalAchievement = getAchievement(physicalVerifications, [25, 50, 75]);
+        const verifiedBeneficiaries = approved.reduce((total, item) => total + Number(item.beneficiaries || 0), 0);
+        document.querySelector('#impactSchoolVisits').textContent = schoolVisits;
+        document.querySelector('#impactPhysicalVerifications').textContent = physicalVerifications;
+        document.querySelector('#impactActivities').textContent = approved.length;
+        document.querySelector('#impactHours').textContent = approved.reduce((total, item) => total + Number(item.hours || 0), 0);
+        document.querySelector('#impactEvents').textContent = approved.length;
+        document.querySelector('#impactBeneficiaries').textContent = verifiedBeneficiaries || '—';
+        document.querySelector('#schoolLevel').textContent = schoolAchievement.level;
+        document.querySelector('#schoolCount').textContent = schoolVisits;
+        document.querySelector('#schoolProgress').style.width = `${schoolAchievement.progress}%`;
+        document.querySelector('#schoolNext').textContent = schoolAchievement.remaining ? `${schoolAchievement.remaining} visits to ${schoolAchievement.nextName}` : 'Gold level achieved';
+        document.querySelector('#physicalLevel').textContent = physicalAchievement.level;
+        document.querySelector('#physicalCount').textContent = physicalVerifications;
+        document.querySelector('#physicalProgress').style.width = `${physicalAchievement.progress}%`;
+        document.querySelector('#physicalNext').textContent = physicalAchievement.remaining ? `${physicalAchievement.remaining} verifications to ${physicalAchievement.nextName}` : 'Gold level achieved';
+        document.querySelector('#impactTimeline').innerHTML = items.length
+          ? items.slice().sort((a, b) => new Date(b.date || b.registeredAt || 0) - new Date(a.date || a.registeredAt || 0)).map((item) => `<article class="impact-timeline-item"><span class="timeline-dot"></span><div><strong>${escapeHTML(item.status === 'Approved' ? `Successfully completed ${item.name}` : item.name)}</strong><p>${escapeHTML(item.date || item.registeredAt || 'Upcoming')} · ${escapeHTML(item.activityType || (isSchoolVisit(item) ? 'School visit' : isPhysicalVerification(item) ? 'Physical verification' : 'Volunteer activity'))} · ${escapeHTML(item.status)}</p><small>${item.status === 'Approved' ? `${item.beneficiaries ? `${item.beneficiaries} verified beneficiaries reached` : 'Verified impact recorded'}` : 'Awaiting verification'}</small></div></article>`).join('')
+          : '<p class="muted">Approved contributions will appear here.</p>';
+      }
+
+      function renderRolePages() {
+        const publishedEvents = JSON.parse(localStorage.getItem('maatramAnnouncements') || '[]').filter((item) => item.published);
+        document.querySelector('#organiserEventCount').textContent = publishedEvents.length;
+        document.querySelector('#adminEventCount').textContent = publishedEvents.length;
+      }
+
+      function showPage(page) {
+        if (page === 'admin' && currentRole() !== 'SUPER_ADMIN') page = 'home';
+        if (page === 'organiser' && currentRole() !== 'ORGANISER') page = 'home';
+        if (page === 'zone' && !['ZONE_INCHARGE', 'SUPER_ADMIN'].includes(currentRole())) page = 'home';
+        document.querySelector('#dashboard').classList.remove('folder-open', 'volunteer-list-open');
+        document.querySelector('#activityWorkspace').hidden = true;
+        document.querySelector('#dashboard').classList.toggle('app-page-open', page !== 'home');
+        document.querySelectorAll('.app-page').forEach((item) => {
+          item.hidden = item.id !== `${page}Page`;
+        });
+        if (page === 'events') renderEventPage();
+        if (page === 'activities') renderActivitiesPage();
+        if (page === 'organiser' || page === 'admin') renderRolePages();
+        if (page === 'admin') renderAdminAnnouncements();
+        document.querySelector('#dashboard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+
+      if (savedUser) showDashboard(savedUser);
+      else prepareLoginForm();
+      applyRoleVisibility();
+      renderAnnouncements();
+      renderVolunteerPosts();
+
+      loginForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const user = Object.fromEntries(new FormData(loginForm).entries());
+        if (!profileFields.hidden && !editingProfile) {
+          user.email = pendingCredentials.email;
+          user.password = pendingCredentials.password;
+        } else {
+          user.email = user.email.trim().toLowerCase();
+          if (!user.email || !user.password || user.password.length < 8) {
+            formError.textContent = 'Enter a valid email and a password of at least 8 characters.';
+            return;
+          }
+          const passwordHash = await hashPassword(user.password);
+          if (savedAccount && !editingProfile) {
+            if (savedAccount.email !== user.email) {
+              formError.textContent = 'This email does not match the saved Maatram profile.';
+              return;
+            }
+            if (savedAccount.passwordHash && savedAccount.passwordHash !== passwordHash) {
+              formError.textContent = 'Incorrect password.';
+              return;
+            }
+            const savedProfile = JSON.parse(localStorage.getItem('maatramUser') || 'null');
+            showDashboard(savedProfile);
+            return;
+          }
+          if (!savedAccount) {
+            pendingCredentials = { email: user.email, password: user.password };
+            formError.textContent = '';
+            showProfileStep();
+            return;
+          }
+        }
+        const passwordHash = await hashPassword(user.password);
+        user.name = user.name.trim();
+        user.maatramId = user.maatramId.trim().toUpperCase();
+        user.zone = user.zone.trim();
+        user.zoneInchargeName = user.zoneInchargeName.trim();
+        if (!user.name || !user.year || !user.department || !user.maatramId || !user.college || !user.zone || !user.zoneInchargeName) {
+          formError.textContent = 'Please complete all student and Zone details.';
+          return;
+        }
+        const profileFile = document.querySelector('#profilePhoto').files[0];
+        const saveUser = (profilePhoto) => {
+          if (profilePhoto) user.profilePhoto = profilePhoto;
+          else if (editingProfile) user.profilePhoto = JSON.parse(localStorage.getItem('maatramUser') || '{}').profilePhoto || '';
+          savedAccount = {
+            email: user.email,
+            maatramId: user.maatramId,
+            passwordHash
+          };
+          delete user.password;
+          localStorage.setItem('maatramAccount', JSON.stringify(savedAccount));
+          localStorage.setItem('maatramUser', JSON.stringify(user));
+          formError.textContent = '';
+          editingProfile = false;
+          pendingCredentials = null;
+          showDashboard(user);
+        };
+        if (!profileFile) {
+          saveUser('');
+        } else if (!profileFile.type.startsWith('image/') || profileFile.size > 5 * 1024 * 1024) {
+          formError.textContent = 'Please choose an image smaller than 5 MB.';
+        } else {
+          const reader = new FileReader();
+          reader.addEventListener('load', () => saveUser(reader.result));
+          reader.readAsDataURL(profileFile);
+        }
+      });
+
+      document.querySelector('#logoutButton').addEventListener('click', () => {
+        localStorage.removeItem('maatramUser');
+        app.hidden = true;
+        loginPage.hidden = false;
+        loginForm.reset();
+        pendingCredentials = null;
+        prepareLoginForm();
+        document.querySelector('#email').focus();
+      });
+
+      document.querySelector('#googleLoginButton').addEventListener('click', () => {
+        document.querySelector('#loginStatus').textContent =
+          'Google login is not configured yet. Add a Google OAuth Client ID before enabling it.';
+        formError.textContent = 'Please use email login for now.';
+      });
+
+      document.querySelector('#editProfileButton').addEventListener('click', () => {
+        const user = JSON.parse(localStorage.getItem('maatramUser') || 'null');
+        if (!user) return;
+        editingProfile = true;
+        app.hidden = true;
+        loginPage.hidden = false;
+        credentialsFields.hidden = false;
+        profileFields.hidden = false;
+        document.querySelector('#googleLoginButton').hidden = true;
+        setProfileRequired(true);
+        loginIntro.textContent = 'Update your Maatram profile details.';
+        submitLabel.textContent = 'Save changes';
+        document.querySelector('#email').value = user.email || '';
+        document.querySelector('#password').value = '';
+        document.querySelector('#name').value = user.name || '';
+        document.querySelector('#maatramId').value = user.maatramId || '';
+        document.querySelector('#college').value = user.college || '';
+        document.querySelector('#zone').value = user.zone || '';
+        document.querySelector('#zoneInchargeName').value = user.zoneInchargeName || '';
+        document.querySelector('#department').value = user.department || '';
+        document.querySelector('#year').value = user.year || '';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+
+      const proofPhotos = document.querySelector('#proofPhotos');
+      const uploadPreview = document.querySelector('#uploadPreview');
+      const proofPreviewImage = document.querySelector('#proofPreviewImage');
+      const proofFileName = document.querySelector('#proofFileName');
+      const uploadStatus = document.querySelector('#uploadStatus');
+      const uploadError = document.querySelector('#uploadError');
+
+      function evidenceKey(type) {
+        return `maatramEvidence:${encodeURIComponent(selectedActivity)}:${type}`;
+      }
+
+      function openActivityFolder(button) {
+        selectedActivityData = button;
+        selectedActivity = button.name;
+        document.querySelector('#dashboard').classList.add('folder-open');
+        document.querySelector('#folderTitle').textContent = selectedActivity;
+        document.querySelector('#folderCategory').textContent = button.type;
+        document.querySelector('#folderMeta').textContent = 'Add your event work and proof photos';
+        document.querySelector('#folderDescription').textContent = button.description;
+        selectedProofFiles = [];
+        proofPhotos.value = '';
+        document.querySelector('#submitProof').disabled = false;
+        uploadPreview.hidden = true;
+        uploadError.textContent = '';
+        document.querySelector('#evidenceNotes').value = localStorage.getItem(evidenceKey('notes')) || '';
+        document.querySelector('#activityWorkspace').hidden = false;
+        document.querySelector('#activityWorkspace').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+
+      function handleProofPhotos(files) {
+        selectedProofFiles = Array.from(files);
+        if (selectedProofFiles.some((file) => !file.type.startsWith('image/') || file.size > 5 * 1024 * 1024)) {
+          selectedProofFiles = [];
+          proofPhotos.value = '';
+          uploadError.textContent = 'Please choose an image smaller than 5 MB.';
+          uploadPreview.hidden = true;
+          return;
+        }
+        proofPreviewImage.src = selectedProofFiles[0] ? URL.createObjectURL(selectedProofFiles[0]) : '';
+        proofFileName.textContent = `${selectedProofFiles.length} proof photos selected`;
+        uploadStatus.textContent = selectedProofFiles.length >= 3 ? 'Ready to post' : 'Select at least 3 photos';
+        uploadPreview.hidden = selectedProofFiles.length === 0;
+        uploadError.textContent = '';
+      }
+
+      proofPhotos.addEventListener('change', () => handleProofPhotos(proofPhotos.files));
+
+      document.querySelector('#removeProof').addEventListener('click', () => {
+        proofPhotos.value = '';
+        selectedProofFiles = [];
+        uploadPreview.hidden = true;
+        uploadError.textContent = '';
+        if (selectedActivity) {
+          localStorage.removeItem(evidenceKey('notes'));
+        }
+      });
+
+      document.querySelectorAll('.leaderboard-tab').forEach((tab) => {
+        tab.addEventListener('click', () => {
+          const view = tab.dataset.leaderboardView;
+          document.querySelectorAll('.leaderboard-tab').forEach((item) => item.classList.toggle('active', item === tab));
+          document.querySelectorAll('.leaderboard-view').forEach((panel) => {
+            panel.hidden = panel.dataset.leaderboardContent !== view;
+          });
+        });
+      });
+
+      document.querySelector('#submitProof').addEventListener('click', () => {
+        const evidenceNotes = document.querySelector('#evidenceNotes').value.trim();
+        if (!selectedActivity || !selectedActivityData || !evidenceNotes || selectedProofFiles.length < 3) {
+          uploadError.textContent = 'Add a description and select at least 3 proof photos before posting.';
+          return;
+        }
+        const toDataUrl = (file) => new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.addEventListener('load', () => resolve(reader.result));
+          reader.addEventListener('error', () => reject(new Error('Unable to read proof photo.')));
+          reader.readAsDataURL(file);
+        });
+        Promise.all(selectedProofFiles.map(toDataUrl)).then((photos) => {
+          const now = new Date().toLocaleDateString();
+          const user = currentUser();
+          const post = { id: crypto.randomUUID(), author: user.name, eventName: selectedActivity, activityType: selectedActivityData.type, description: evidenceNotes, photos, date: now, status: 'Pending verification', beneficiaries: 0 };
+          const posts = JSON.parse(localStorage.getItem('maatramVolunteerPosts') || '[]');
+          posts.push(post);
+          localStorage.setItem('maatramVolunteerPosts', JSON.stringify(posts));
+          activityHistory = activityHistory.filter((item) => item.name !== selectedActivity);
+          activityHistory.push({ id: post.id, name: selectedActivity, activityType: selectedActivityData.type, description: evidenceNotes, photos, status: 'Pending verification', date: now, points: 0, hours: 0 });
+          localStorage.setItem('maatramActivityHistory', JSON.stringify(activityHistory));
+          localStorage.setItem(evidenceKey('notes'), evidenceNotes);
+          renderVolunteerPosts();
+          renderDashboard();
+          uploadError.textContent = 'Your volunteering post was published and saved for verification.';
+          document.querySelector('#submitProof').disabled = true;
+        }).catch(() => {
+          uploadError.textContent = 'The proof photos could not be saved. Please try again.';
+        });
+      });
+
+      document.querySelector('#closeActivityFolder').addEventListener('click', () => {
+        document.querySelector('#activityWorkspace').hidden = true;
+        document.querySelector('#dashboard').classList.remove('folder-open');
+        showPage('volunteerDetails');
+      });
+
+      document.querySelector('#togglePassword').addEventListener('click', () => {
+        const password = document.querySelector('#password');
+        const showing = password.type === 'text';
+        password.type = showing ? 'password' : 'text';
+        document.querySelector('#togglePassword').textContent = showing ? 'Show' : 'Hide';
+        document.querySelector('#togglePassword').setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
+      });
+
+      document.querySelector('#notificationsButton').addEventListener('click', () => {
+        document.querySelector('#history').scrollIntoView({ behavior: 'smooth' });
+      });
+
+      document.querySelectorAll('.nav-link[data-page]').forEach((link) => link.addEventListener('click', (event) => {
+        event.preventDefault();
+        document.querySelector('.nav-link.active')?.classList.remove('active');
+        link.classList.add('active');
+        showPage(link.dataset.page);
+      }));
+
+      document.querySelectorAll('.volunteer-type-card').forEach((card) => card.addEventListener('click', () => {
+        renderVolunteerDetails(card.dataset.type);
+      }));
+
+      document.querySelector('#backToHomeFromVolunteering').addEventListener('click', () => {
+        document.querySelector('.nav-link[data-page="home"]').classList.add('active');
+        showPage('home');
+      });
+
+      document.querySelector('#eventSearch').addEventListener('input', renderEventPage);
+
+      document.querySelector('#createEventButton').addEventListener('click', () => {
+        document.querySelector('#organiserPage .intro').textContent = 'Event creation will be submitted for Super Admin approval.';
+      });
+
+      document.querySelector('#announcementForm').addEventListener('submit', (event) => {
+        event.preventDefault();
+        const values = Object.fromEntries(new FormData(event.currentTarget).entries());
+        const announcements = JSON.parse(localStorage.getItem('maatramAnnouncements') || '[]');
+        const file = document.querySelector('#announcementImage').files[0];
+        const save = (image) => {
+          const announcement = { ...values, image, required: Number(values.required) };
+          delete announcement.imageFile;
+          if (editingAnnouncementId) {
+            const existing = announcements.find((item) => item.id === editingAnnouncementId);
+            Object.assign(existing, announcement);
+          } else {
+            announcements.push({ ...announcement, id: crypto.randomUUID(), registrations: 0, volunteers: [], published: true });
+          }
+          localStorage.setItem('maatramAnnouncements', JSON.stringify(announcements));
+          resetAnnouncementForm();
+          renderAdminAnnouncements();
+          renderAnnouncements();
+        };
+        if (file) {
+          const reader = new FileReader();
+          reader.addEventListener('load', () => save(reader.result));
+          reader.readAsDataURL(file);
+        } else {
+          const existing = announcements.find((item) => item.id === editingAnnouncementId);
+          save(existing ? existing.image || '' : '');
+        }
+      });
+      document.querySelector('#cancelAnnouncementEdit').addEventListener('click', resetAnnouncementForm);
+      document.querySelector('#announcementImage').addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        const preview = document.querySelector('#announcementImagePreview');
+        preview.src = URL.createObjectURL(file);
+        preview.hidden = false;
+      });
+
+      showPage('home');
+    </script>
+  </body>
+</html>

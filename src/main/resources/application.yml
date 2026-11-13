@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: maatram-platform
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/maatram?createDatabaseIfNotExist=true&serverTimezone=UTC}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 10MB
+
+server:
+  port: ${PORT:8080}
+
+logging:
+  level:
+    com.maatram: INFO

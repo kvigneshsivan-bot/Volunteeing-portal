@@ -47,6 +47,8 @@
               <input id="department" name="department" type="text" placeholder="e.g. CSE" required />
             </div>
           </div>
+          <label for="mobile">Mobile number</label>
+          <input id="mobile" name="mobile" type="tel" autocomplete="tel" placeholder="Enter your mobile number" required />
           <label for="maatramId">Maatram ID</label>
           <input id="maatramId" name="maatramId" type="text" placeholder="Enter your Maatram ID" required />
           <label for="college">College</label>
@@ -108,6 +110,7 @@
         <div class="welcome-row">
           <div><p class="eyebrow">Sunday, 08 November 2026</p><h1>Good evening, <span id="welcomeName">Vignesh</span><span>.</span></h1><p class="intro">Small acts create lasting change. Here’s your impact at a glance.</p><p class="zone-summary" id="zoneSummary"></p></div>
         </div>
+        <div class="request-status-banner" id="requestStatusBanner" hidden role="status"></div>
 
         <section class="stats-grid" aria-label="Your progress" hidden>
           <article class="stat-card highlight"><div class="stat-icon">✦</div><p>Gratitude points</p><strong id="pointsValue">0</strong><small id="pointsChange">Start your impact journey</small></article>
@@ -266,7 +269,7 @@
           <div class="page-heading"><div><p class="eyebrow">Platform control</p><h1>Admin dashboard</h1><p class="intro">Manage users, NGOs, events, approvals, and platform statistics.</p></div></div>
           <div class="admin-stat-grid"><article class="summary-card"><span>Total volunteers</span><strong id="adminVolunteerCount">1</strong></article><article class="summary-card"><span>Pending NGO approvals</span><strong>0</strong></article><article class="summary-card"><span>Published events</span><strong id="adminEventCount">0</strong></article><article class="summary-card"><span>Verified participation</span><strong>0</strong></article></div>
           <div class="management-grid"><article class="management-panel"><h2>NGO verification</h2><p class="muted">Review organiser applications and verification documents.</p><button class="secondary-button" type="button">Review applications</button></article><article class="management-panel"><h2>Event approvals</h2><p class="muted">Approve or reject submitted volunteering events.</p><button class="secondary-button" type="button">Review events</button></article></div>
-          <div class="management-panel announcement-admin-panel"><h2>Volunteer requirement announcement</h2><p class="muted">Create a LinkedIn-style event post and publish it on the Home page.</p><form id="announcementForm" class="announcement-form"><input name="title" placeholder="Event title" required /><textarea name="description" placeholder="Event description" required></textarea><div><input name="date" type="date" required /><input name="time" type="time" required /><input name="location" placeholder="Location" required /></div><div><input name="required" type="number" min="1" placeholder="Volunteers required" required /><input name="skills" placeholder="Skills / eligibility" /><input name="deadline" type="date" required /></div><label class="file-upload">Event image or poster<input name="image" id="announcementImage" type="file" accept="image/*" /></label><img id="announcementImagePreview" class="announcement-image-preview" alt="Poster preview" hidden /><textarea name="instructions" placeholder="Additional instructions"></textarea><div class="announcement-form-actions"><button class="primary-button" id="announcementSubmitButton" type="submit">Publish announcement <span>→</span></button><button class="secondary-button" id="cancelAnnouncementEdit" type="button" hidden>Cancel edit</button></div></form><div id="adminAnnouncementList"></div></div>
+          <div class="management-panel announcement-admin-panel"><h2>Volunteer requirement announcement</h2><p class="muted">Create a LinkedIn-style event post and publish it on the Home page.</p><form id="announcementForm" class="announcement-form"><input name="title" placeholder="Event title" required /><textarea name="description" placeholder="Event description" required></textarea><div><input name="date" type="date" required /><input name="time" type="time" required /><input name="location" placeholder="Location" required /></div><div><input name="required" type="number" min="1" placeholder="Volunteers required" required /><input name="skills" placeholder="Skills / eligibility" /><input name="deadline" type="date" required /></div><label class="file-upload">Event image or poster<input name="image" id="announcementImage" type="file" accept="image/*" /></label><img id="announcementImagePreview" class="announcement-image-preview" alt="Poster preview" hidden /><textarea name="instructions" placeholder="Additional instructions"></textarea><div class="announcement-form-actions"><button class="primary-button" id="announcementSubmitButton" type="submit">Publish announcement <span>→</span></button><button class="secondary-button" id="cancelAnnouncementEdit" type="button" hidden>Cancel edit</button></div></form><div id="adminAnnouncementList"></div><div id="adminVolunteerRegistrations"></div></div>
         </section>
       </main>
     </div>
@@ -286,6 +289,8 @@
       let selectedActivityData = null;
       let selectedProofFiles = [];
       let editingAnnouncementId = null;
+      let apiPassword = '';
+      const apiBaseUrl = 'http://localhost:8080/api';
       const credentialsFields = document.querySelector('#credentialsFields');
       const profileFields = document.querySelector('#profileFields');
       const loginIntro = document.querySelector('#loginIntro');
@@ -301,6 +306,98 @@
         const bytes = new TextEncoder().encode(password);
         const digest = await crypto.subtle.digest('SHA-256', bytes);
         return Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, '0')).join('');
+      }
+
+      async function apiRequest(path, options = {}) {
+        const headers = { ...(options.headers || {}) };
+        if (options.body && !headers['Content-Type']) headers['Content-Type'] = 'application/json';
+        const email = currentUser().email || '';
+        if (email && apiPassword) {
+          headers.Authorization = `Basic ${btoa(`${email}:${apiPassword}`)}`;
+        }
+        const response = await fetch(`${apiBaseUrl}${path}`, { ...options, headers });
+        if (!response.ok) {
+          let message = `Request failed (${response.status})`;
+          try {
+            const body = await response.json();
+            message = body.message || body.error || message;
+          } catch (error) {
+            // Keep the HTTP status when the server does not return JSON.
+          }
+          throw new Error(message);
+        }
+        return response.status === 204 ? null : response.json();
+      }
+
+      async function registerBackendUser(user, password) {
+        try {
+          const response = await fetch(`${apiBaseUrl}/auth/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fullName: user.name,
+              email: user.email,
+              volunteerId: user.maatramId,
+              password,
+              mobileNumber: user.mobile,
+              academicYear: user.year
+            })
+          });
+          if (!response.ok && response.status !== 400) {
+            throw new Error(`Backend registration failed (${response.status})`);
+          }
+        } catch (error) {
+          console.error('Unable to register the volunteer with the shared backend:', error);
+        }
+      }
+
+      function announcementFromApi(item) {
+        return {
+          id: String(item.id),
+          title: item.title,
+          description: item.description,
+          date: item.eventDate,
+          time: item.eventTime,
+          location: item.location,
+          required: item.requiredVolunteers,
+          registrations: item.registeredVolunteers,
+          skills: item.skillsOrEligibility || '',
+          deadline: item.registrationDeadline,
+          image: item.imageUrl || '',
+          instructions: item.instructions || '',
+          published: item.published,
+          volunteers: []
+        };
+      }
+
+      async function syncPublishedAnnouncements() {
+        try {
+          const announcements = (await apiRequest('/announcements')).map(announcementFromApi);
+          localStorage.setItem('maatramAnnouncements', JSON.stringify(announcements));
+          renderAnnouncements();
+        } catch (error) {
+          console.error('Unable to load shared announcements:', error);
+        }
+      }
+
+      async function syncAdminAnnouncements() {
+        if (!apiPassword) return;
+        try {
+          const announcements = (await apiRequest('/announcements/admin')).map(announcementFromApi);
+          await Promise.all(announcements.map(async (announcement) => {
+            announcement.volunteers = (await apiRequest(`/announcements/admin/${announcement.id}/volunteers`))
+              .map((volunteer) => ({
+                name: volunteer.name,
+                mobile: volunteer.mobileNumber,
+                year: volunteer.academicYear
+              }));
+          }));
+          localStorage.setItem('maatramAnnouncements', JSON.stringify(announcements));
+          renderAdminAnnouncements();
+          renderAnnouncements();
+        } catch (error) {
+          console.error('Unable to load shared admin announcements:', error);
+        }
       }
 
       function prepareLoginForm() {
@@ -386,6 +483,7 @@
           button.disabled = registered;
           button.textContent = registered ? 'Registered' : 'Register';
         });
+        renderRequestStatusBanner();
       }
 
       function currentUser() {
@@ -413,7 +511,27 @@
       }
 
       function announcementStatus(item) {
-        return Number(item.registrations || 0) >= Number(item.required || 0) ? 'Requirement closed' : 'Volunteers available';
+        const registrations = announcementRegistrationCount(item);
+        return registrations >= Number(item.required || 0) ? 'Request closed' : 'Volunteers available';
+      }
+
+      function announcementRegistrationCount(item) {
+        return Math.max(Number(item.registrations || 0), (item.volunteers || []).length);
+      }
+
+      function isAnnouncementClosed(item) {
+        return announcementStatus(item) === 'Request closed';
+      }
+
+      function renderRequestStatusBanner() {
+        const banner = document.querySelector('#requestStatusBanner');
+        if (!banner) return;
+        const closed = JSON.parse(localStorage.getItem('maatramAnnouncements') || '[]')
+          .filter((item) => item.published && isAnnouncementClosed(item));
+        banner.hidden = closed.length === 0;
+        banner.innerHTML = closed.length
+          ? `<strong>Request closed:</strong> ${closed.map((item) => escapeHTML(item.title)).join(', ')}`
+          : '';
       }
 
       const volunteerDetails = [
@@ -444,9 +562,11 @@
       function renderAnnouncements() {
         const announcements = JSON.parse(localStorage.getItem('maatramAnnouncements') || '[]').filter((item) => item.published);
         document.querySelector('#announcementFeed').innerHTML = announcements.length
-          ? announcements.map((item) => `<article class="announcement-card">${item.image ? `<div class="announcement-image-wrap"><img class="announcement-card-image" src="${item.image}" alt="${escapeHTML(item.title)} poster" /><span class="announcement-status ${announcementStatus(item) === 'Requirement closed' ? 'closed' : ''}">${announcementStatus(item)}</span></div>` : ''}<div class="announcement-card-content"><p class="category">Volunteer requirement</p><h3>${escapeHTML(item.title)}</h3><p>${escapeHTML(item.description)}</p><div class="announcement-meta"><span>◷ ${escapeHTML(item.date)} · ${escapeHTML(item.time)}</span><span>📍 ${escapeHTML(item.location)}</span><span>👥 ${item.required} volunteers required · ${item.registrations || 0} registered</span><span>Registration closes: ${escapeHTML(item.deadline)}</span></div>${item.skills ? `<p class="announcement-detail"><strong>Skills / eligibility:</strong> ${escapeHTML(item.skills)}</p>` : ''}${item.instructions ? `<p class="announcement-detail"><strong>Instructions:</strong> ${escapeHTML(item.instructions)}</p>` : ''}<p class="announcement-state ${announcementStatus(item) === 'Requirement closed' ? 'closed' : ''}">${announcementStatus(item)}</p><button class="secondary-button announcement-volunteers" data-announcement-id="${item.id}" type="button">View volunteers</button></div></article>`).join('')
+          ? announcements.map((item) => `<article class="announcement-card">${item.image ? `<div class="announcement-image-wrap"><img class="announcement-card-image" src="${item.image}" alt="${escapeHTML(item.title)} poster" /><span class="announcement-status ${isAnnouncementClosed(item) ? 'closed' : ''}">${announcementStatus(item)}</span></div>` : ''}<div class="announcement-card-content"><p class="category">Volunteer requirement</p><h3>${escapeHTML(item.title)}</h3><p>${escapeHTML(item.description)}</p><div class="announcement-meta"><span>◷ ${escapeHTML(item.date)} · ${escapeHTML(item.time)}</span><span>📍 ${escapeHTML(item.location)}</span><span>👥 ${item.required} volunteers required · ${announcementRegistrationCount(item)} registered</span><span>Registration closes: ${escapeHTML(item.deadline)}</span></div>${item.skills ? `<p class="announcement-detail"><strong>Skills / eligibility:</strong> ${escapeHTML(item.skills)}</p>` : ''}${item.instructions ? `<p class="announcement-detail"><strong>Instructions:</strong> ${escapeHTML(item.instructions)}</p>` : ''}<p class="announcement-state ${isAnnouncementClosed(item) ? 'closed' : ''}">${announcementStatus(item)}</p><button class="primary-button announcement-available" data-announcement-id="${item.id}" type="button" ${isAnnouncementClosed(item) ? 'disabled' : ''}>${isAnnouncementClosed(item) ? 'Request closed' : 'Available'}</button><button class="secondary-button announcement-volunteers" data-announcement-id="${item.id}" type="button">View volunteers</button></div></article>`).join('')
           : '<p class="muted">No volunteer requirements have been published yet.</p>';
+        document.querySelectorAll('.announcement-available').forEach((button) => button.addEventListener('click', () => registerForAnnouncement(button.dataset.announcementId)));
         document.querySelectorAll('.announcement-volunteers').forEach((button) => button.addEventListener('click', () => showAnnouncementVolunteers(button.dataset.announcementId)));
+        renderRequestStatusBanner();
         if (document.querySelector('#eventPageList')) renderEventPage();
       }
 
@@ -462,20 +582,28 @@
         document.querySelector('#adminAnnouncementList').innerHTML = announcements.length
           ? announcements.map((item) => `<div class="admin-announcement-row"><strong>${escapeHTML(item.title)}</strong><span>${item.published ? 'Published' : 'Draft'}</span><button class="secondary-button edit-announcement" data-id="${item.id}" type="button">Edit</button><button class="secondary-button toggle-announcement" data-id="${item.id}" type="button">${item.published ? 'Unpublish' : 'Publish'}</button><button class="secondary-button delete-announcement" data-id="${item.id}" type="button">Delete</button></div>`).join('')
           : '<p class="muted">No announcements created.</p>';
+        document.querySelector('#adminVolunteerRegistrations').innerHTML = announcements.some((item) => (item.volunteers || []).length)
+          ? `<h3 class="admin-volunteer-heading">Available volunteers</h3>${announcements.filter((item) => (item.volunteers || []).length).map((item) => `<section class="admin-volunteer-group"><strong>${escapeHTML(item.title)}</strong><div class="admin-volunteer-list">${item.volunteers.map((volunteer) => `<div><span>${escapeHTML(volunteer.name)}</span><span>${escapeHTML(volunteer.mobile || 'Not provided')}</span><span>${escapeHTML(volunteer.year || 'Not provided')}</span></div>`).join('')}</div></section>`).join('')}`
+          : '<p class="muted">No volunteers have marked themselves available yet.</p>';
         document.querySelectorAll('.edit-announcement').forEach((button) => button.addEventListener('click', () => beginAnnouncementEdit(button.dataset.id)));
-        document.querySelectorAll('.toggle-announcement').forEach((button) => button.addEventListener('click', () => {
+        document.querySelectorAll('.toggle-announcement').forEach((button) => button.addEventListener('click', async () => {
           const items = JSON.parse(localStorage.getItem('maatramAnnouncements') || '[]');
           const item = items.find((entry) => entry.id === button.dataset.id);
-          if (item) item.published = !item.published;
-          localStorage.setItem('maatramAnnouncements', JSON.stringify(items));
-          renderAdminAnnouncements();
-          renderAnnouncements();
+          if (!item) return;
+          try {
+            await apiRequest(`/announcements/admin/${button.dataset.id}/publish?value=${!item.published}`, { method: 'PATCH' });
+            await syncAdminAnnouncements();
+          } catch (error) {
+            window.alert(error.message);
+          }
         }));
-        document.querySelectorAll('.delete-announcement').forEach((button) => button.addEventListener('click', () => {
-          const items = JSON.parse(localStorage.getItem('maatramAnnouncements') || '[]').filter((entry) => entry.id !== button.dataset.id);
-          localStorage.setItem('maatramAnnouncements', JSON.stringify(items));
-          renderAdminAnnouncements();
-          renderAnnouncements();
+        document.querySelectorAll('.delete-announcement').forEach((button) => button.addEventListener('click', async () => {
+          try {
+            await apiRequest(`/announcements/admin/${button.dataset.id}`, { method: 'DELETE' });
+            await syncAdminAnnouncements();
+          } catch (error) {
+            window.alert(error.message);
+          }
         }));
       }
 
@@ -511,7 +639,22 @@
           return;
         }
         const volunteers = announcement.volunteers || [];
-        window.alert(volunteers.length ? volunteers.map((item) => `${item.name} · ${item.college} · ${item.mobile} · ${item.year}`).join('\\n') : 'No students have registered for this announcement yet.');
+        window.alert(volunteers.length ? volunteers.map((item) => `${item.name} · ${item.mobile || 'Not provided'} · ${item.year || 'Not provided'}`).join('\\n') : 'No students have registered for this announcement yet.');
+      }
+
+      async function registerForAnnouncement(id) {
+        const user = currentUser();
+        if (!apiPassword) {
+          window.alert('Please sign in again to mark yourself available.');
+          return;
+        }
+        try {
+          await apiRequest(`/announcements/${id}/availability`, { method: 'POST' });
+          await syncPublishedAnnouncements();
+          window.alert('You are marked as available for this request.');
+        } catch (error) {
+          window.alert(error.message);
+        }
       }
 
       function renderEventPage() {
@@ -521,8 +664,9 @@
           return !search || text.includes(search);
         });
         document.querySelector('#eventPageList').innerHTML = events.length
-          ? events.map((item) => `<article class="event-page-card">${item.image ? `<img class="event-page-image" src="${item.image}" alt="${escapeHTML(item.title)} poster" />` : ''}<p class="category">Admin announcement</p><h3>${escapeHTML(item.title)}</h3><p>◷ ${escapeHTML(item.date)} · ${escapeHTML(item.time)} · 📍 ${escapeHTML(item.location)}<br>${escapeHTML(item.description)}</p><p class="event-page-requirement">${item.required} volunteers required · ${announcementStatus(item)}</p><small>Registration closes: ${escapeHTML(item.deadline)}</small></article>`).join('')
+          ? events.map((item) => `<article class="event-page-card">${item.image ? `<img class="event-page-image" src="${item.image}" alt="${escapeHTML(item.title)} poster" />` : ''}<p class="category">Admin announcement</p><h3>${escapeHTML(item.title)}</h3><p>◷ ${escapeHTML(item.date)} · ${escapeHTML(item.time)} · 📍 ${escapeHTML(item.location)}<br>${escapeHTML(item.description)}</p><p class="event-page-requirement">${item.required} volunteers required · ${announcementStatus(item)}</p><small>Registration closes: ${escapeHTML(item.deadline)}</small><button class="primary-button event-available" data-announcement-id="${item.id}" type="button" ${isAnnouncementClosed(item) ? 'disabled' : ''}>${isAnnouncementClosed(item) ? 'Request closed' : 'Available'}</button></article>`).join('')
           : '<p class="muted">No Admin events have been published yet.</p>';
+        document.querySelectorAll('.event-available').forEach((button) => button.addEventListener('click', () => registerForAnnouncement(button.dataset.announcementId)));
       }
 
       function isSchoolVisit(item) {
@@ -600,7 +744,10 @@
         if (page === 'events') renderEventPage();
         if (page === 'activities') renderActivitiesPage();
         if (page === 'organiser' || page === 'admin') renderRolePages();
-        if (page === 'admin') renderAdminAnnouncements();
+        if (page === 'admin') {
+          renderAdminAnnouncements();
+          syncAdminAnnouncements();
+        }
         document.querySelector('#dashboard').scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
 
@@ -633,6 +780,10 @@
               return;
             }
             const savedProfile = JSON.parse(localStorage.getItem('maatramUser') || 'null');
+            apiPassword = user.password;
+            if (user.email !== 'k.vigneshsivan@gmail.com' && savedProfile) {
+              await registerBackendUser(savedProfile, user.password);
+            }
             showDashboard(savedProfile);
             return;
           }
@@ -646,16 +797,19 @@
         const passwordHash = await hashPassword(user.password);
         user.name = user.name.trim();
         user.maatramId = user.maatramId.trim().toUpperCase();
+        user.mobile = user.mobile.trim();
         user.zone = user.zone.trim();
         user.zoneInchargeName = user.zoneInchargeName.trim();
-        if (!user.name || !user.year || !user.department || !user.maatramId || !user.college || !user.zone || !user.zoneInchargeName) {
+        if (!user.name || !user.year || !user.department || !user.mobile || !user.maatramId || !user.college || !user.zone || !user.zoneInchargeName) {
           formError.textContent = 'Please complete all student and Zone details.';
           return;
         }
         const profileFile = document.querySelector('#profilePhoto').files[0];
-        const saveUser = (profilePhoto) => {
+        const saveUser = async (profilePhoto) => {
           if (profilePhoto) user.profilePhoto = profilePhoto;
           else if (editingProfile) user.profilePhoto = JSON.parse(localStorage.getItem('maatramUser') || '{}').profilePhoto || '';
+          apiPassword = user.password;
+          if (user.email !== 'k.vigneshsivan@gmail.com') await registerBackendUser(user, user.password);
           savedAccount = {
             email: user.email,
             maatramId: user.maatramId,
@@ -712,6 +866,7 @@
         document.querySelector('#password').value = '';
         document.querySelector('#name').value = user.name || '';
         document.querySelector('#maatramId').value = user.maatramId || '';
+        document.querySelector('#mobile').value = user.mobile || '';
         document.querySelector('#college').value = user.college || '';
         document.querySelector('#zone').value = user.zone || '';
         document.querySelector('#zoneInchargeName').value = user.zoneInchargeName || '';
@@ -847,6 +1002,7 @@
       document.querySelector('#backToHomeFromVolunteering').addEventListener('click', () => {
         document.querySelector('.nav-link[data-page="home"]').classList.add('active');
         showPage('home');
+        syncPublishedAnnouncements();
       });
 
       document.querySelector('#eventSearch').addEventListener('input', renderEventPage);
@@ -855,31 +1011,52 @@
         document.querySelector('#organiserPage .intro').textContent = 'Event creation will be submitted for Super Admin approval.';
       });
 
-      document.querySelector('#announcementForm').addEventListener('submit', (event) => {
+      document.querySelector('#announcementForm').addEventListener('submit', async (event) => {
         event.preventDefault();
         const values = Object.fromEntries(new FormData(event.currentTarget).entries());
-        const announcements = JSON.parse(localStorage.getItem('maatramAnnouncements') || '[]');
         const file = document.querySelector('#announcementImage').files[0];
-        const save = (image) => {
-          const announcement = { ...values, image, required: Number(values.required) };
-          delete announcement.imageFile;
-          if (editingAnnouncementId) {
-            const existing = announcements.find((item) => item.id === editingAnnouncementId);
-            Object.assign(existing, announcement);
-          } else {
-            announcements.push({ ...announcement, id: crypto.randomUUID(), registrations: 0, volunteers: [], published: true });
+        if (!apiPassword) {
+          window.alert('Please sign in again before managing announcements.');
+          return;
+        }
+        const save = async (image) => {
+          const payload = {
+            title: values.title,
+            description: values.description,
+            eventDate: values.date,
+            eventTime: values.time,
+            location: values.location,
+            requiredVolunteers: Number(values.required),
+            skillsOrEligibility: values.skills || '',
+            registrationDeadline: values.deadline,
+            imageUrl: image && image.length <= 500 ? image : '',
+            instructions: values.instructions || ''
+          };
+          try {
+            if (editingAnnouncementId) {
+              await apiRequest(`/announcements/admin/${editingAnnouncementId}`, {
+                method: 'PUT',
+                body: JSON.stringify(payload)
+              });
+            } else {
+              await apiRequest('/announcements/admin', {
+                method: 'POST',
+                body: JSON.stringify(payload)
+              });
+            }
+            resetAnnouncementForm();
+            await syncAdminAnnouncements();
+          } catch (error) {
+            window.alert(error.message);
           }
-          localStorage.setItem('maatramAnnouncements', JSON.stringify(announcements));
-          resetAnnouncementForm();
-          renderAdminAnnouncements();
-          renderAnnouncements();
         };
         if (file) {
           const reader = new FileReader();
           reader.addEventListener('load', () => save(reader.result));
           reader.readAsDataURL(file);
         } else {
-          const existing = announcements.find((item) => item.id === editingAnnouncementId);
+          const existing = JSON.parse(localStorage.getItem('maatramAnnouncements') || '[]')
+            .find((item) => item.id === editingAnnouncementId);
           save(existing ? existing.image || '' : '');
         }
       });
@@ -890,6 +1067,14 @@
         const preview = document.querySelector('#announcementImagePreview');
         preview.src = URL.createObjectURL(file);
         preview.hidden = false;
+      });
+
+      window.addEventListener('storage', (event) => {
+        if (event.key === 'maatramAnnouncements') {
+          renderAnnouncements();
+          renderRequestStatusBanner();
+          if (currentRole() === 'SUPER_ADMIN') renderAdminAnnouncements();
+        }
       });
 
       showPage('home');

@@ -31,6 +31,8 @@ public class AuthService {
         user.setEmail(email);
         user.setVolunteerId(volunteerId);
         user.setPassword(passwordEncoder.encode(request.password()));
+        user.setMobileNumber(request.mobileNumber());
+        user.setAcademicYear(request.academicYear());
         user.setRole(Role.VOLUNTEER);
         try {
             return users.save(user);

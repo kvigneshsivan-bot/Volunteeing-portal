@@ -2,10 +2,15 @@ package com.maatram.service;
 
 import com.maatram.dto.AnnouncementRequest;
 import com.maatram.dto.AnnouncementResponse;
+import com.maatram.dto.AnnouncementVolunteerResponse;
 import com.maatram.entity.Announcement;
+import com.maatram.entity.AnnouncementRegistration;
+import com.maatram.entity.Role;
 import com.maatram.entity.User;
 import com.maatram.repository.AnnouncementRepository;
+import com.maatram.repository.AnnouncementRegistrationRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +20,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AnnouncementService {
     private final AnnouncementRepository announcements;
+    private final AnnouncementRegistrationRepository registrations;
 
     @Transactional(readOnly = true)
     public List<AnnouncementResponse> published() {
@@ -54,6 +60,43 @@ public class AnnouncementService {
             throw new IllegalArgumentException("Announcement was not found");
         }
         announcements.deleteById(id);
+    }
+
+    @Transactional
+    public AnnouncementResponse register(Long id, User volunteer) {
+        if (volunteer.getRole() != Role.VOLUNTEER) {
+            throw new IllegalStateException("Only volunteers can mark availability");
+        }
+        Announcement announcement = announcements.findByIdForUpdate(id)
+                .orElseThrow(() -> new IllegalArgumentException("Announcement was not found"));
+        if (!announcement.isPublished()
+                || announcement.getRegistrationDeadline().isBefore(java.time.LocalDate.now())
+                || announcement.getRegisteredVolunteers() >= announcement.getRequiredVolunteers()) {
+            throw new IllegalStateException("This request is closed");
+        }
+        if (registrations.findByAnnouncementIdAndVolunteerId(id, volunteer.getId()).isPresent()) {
+            throw new IllegalArgumentException("You have already marked yourself available");
+        }
+        AnnouncementRegistration registration = new AnnouncementRegistration();
+        registration.setAnnouncement(announcement);
+        registration.setVolunteer(volunteer);
+        try {
+            registrations.save(registration);
+            announcement.setRegisteredVolunteers(announcement.getRegisteredVolunteers() + 1);
+            return AnnouncementResponse.from(announcements.save(announcement));
+        } catch (DataIntegrityViolationException exception) {
+            throw new IllegalArgumentException("You have already marked yourself available", exception);
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public List<AnnouncementVolunteerResponse> volunteers(Long id) {
+        if (!announcements.existsById(id)) {
+            throw new IllegalArgumentException("Announcement was not found");
+        }
+        return registrations.findByAnnouncementIdOrderByCreatedAtAsc(id).stream()
+                .map(AnnouncementVolunteerResponse::from)
+                .toList();
     }
 
     private AnnouncementResponse save(Announcement announcement, AnnouncementRequest request, User admin) {

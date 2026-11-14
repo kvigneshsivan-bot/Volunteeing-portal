@@ -25,6 +25,11 @@ a Google OAuth Client ID is supplied; it does not fake Google authentication.
 Each volunteer opportunity opens its own workspace where users can add an activity note,
 upload at least three proof photos, and publish a contribution post. The browser demo
 stores these posts locally until the frontend API-integration phase.
+Published volunteer requests now include an `Available` action backed by the Spring Boot
+API. Availability records store the volunteer name, mobile number, and academic year in
+MySQL, show in the Admin dashboard, and automatically display `Request closed` when the
+required count is reached. The frontend refreshes published announcements from the API so
+other volunteer browsers can see newly published requests.
 
 ## Run the Spring Boot backend
 

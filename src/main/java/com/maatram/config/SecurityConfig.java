@@ -45,6 +45,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/auth/organisations/register").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/events").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/announcements").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/announcements/*/availability").hasRole("VOLUNTEER")
                         .requestMatchers("/api/announcements/admin/**", "/api/announcements/admin").hasRole("SUPER_ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/contributions/*/status").hasAnyRole("ZONE_INCHARGE", "SUPER_ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/contributions/mine/**").hasRole("VOLUNTEER")

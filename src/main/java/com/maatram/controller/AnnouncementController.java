@@ -2,6 +2,7 @@ package com.maatram.controller;
 
 import com.maatram.dto.AnnouncementRequest;
 import com.maatram.dto.AnnouncementResponse;
+import com.maatram.dto.AnnouncementVolunteerResponse;
 import com.maatram.entity.User;
 import com.maatram.service.AnnouncementService;
 import jakarta.validation.Valid;
@@ -43,6 +44,17 @@ public class AnnouncementController {
     @PatchMapping("/admin/{id}/publish")
     public AnnouncementResponse publish(@PathVariable Long id, @RequestParam boolean value) {
         return announcementService.setPublished(id, value);
+    }
+
+    @PostMapping("/{id}/availability")
+    public AnnouncementResponse register(@PathVariable Long id,
+                                         @AuthenticationPrincipal User volunteer) {
+        return announcementService.register(id, volunteer);
+    }
+
+    @GetMapping("/admin/{id}/volunteers")
+    public List<AnnouncementVolunteerResponse> volunteers(@PathVariable Long id) {
+        return announcementService.volunteers(id);
     }
 
     @DeleteMapping("/admin/{id}")

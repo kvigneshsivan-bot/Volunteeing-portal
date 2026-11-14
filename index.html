@@ -290,7 +290,7 @@
       let selectedProofFiles = [];
       let editingAnnouncementId = null;
       let apiPassword = '';
-      const apiBaseUrl = 'http://localhost:8080/api';
+      const apiBaseUrl = window.MAATRAM_API_BASE_URL || 'http://localhost:8080/api';
       const credentialsFields = document.querySelector('#credentialsFields');
       const profileFields = document.querySelector('#profileFields');
       const loginIntro = document.querySelector('#loginIntro');
@@ -315,7 +315,15 @@
         if (email && apiPassword) {
           headers.Authorization = `Basic ${btoa(`${email}:${apiPassword}`)}`;
         }
-        const response = await fetch(`${apiBaseUrl}${path}`, { ...options, headers });
+        let response;
+        try {
+          response = await fetch(`${apiBaseUrl}${path}`, { ...options, headers });
+        } catch (error) {
+          if (error instanceof TypeError) {
+            throw new Error('Backend is not reachable. Start the API server or configure MAATRAM_API_BASE_URL.');
+          }
+          throw error;
+        }
         if (!response.ok) {
           let message = `Request failed (${response.status})`;
           try {

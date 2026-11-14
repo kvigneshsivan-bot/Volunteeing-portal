@@ -58,9 +58,10 @@ zone and college endpoints are protected by the `SUPER_ADMIN` role.
 ## Deploy the backend
 
 The repository includes [Dockerfile](./Dockerfile) and [render.yaml](./render.yaml)
-for a Render web service. Create a Render service from this repository, configure
-`DB_URL`, `DB_USERNAME`, and `DB_PASSWORD` for a reachable MySQL database, and wait
-for `/api/health` to pass. Then set the deployed API URL plus `/api` in
+for a Render web service. The default deployment uses a file-based H2 database, so
+no paid MySQL service is required for a demo. Wait for `/api/health` to pass. For
+production persistence, set `DB_URL`, `DB_USERNAME`, and `DB_PASSWORD` for a
+reachable MySQL database. Then set the deployed API URL plus `/api` in
 [api-config.js](./api-config.js), for example
 `https://your-api.example.com/api`, commit, and push that change so GitHub Pages can
 reach the backend.

@@ -55,6 +55,16 @@ Volunteer registration is `POST /api/auth/register`. Authenticated requests curr
 use HTTP Basic authentication with the registered email and password. Administrative
 zone and college endpoints are protected by the `SUPER_ADMIN` role.
 
+## Deploy the backend
+
+The repository includes [Dockerfile](./Dockerfile) and [render.yaml](./render.yaml)
+for a Render web service. Create a Render service from this repository, configure
+`DB_URL`, `DB_USERNAME`, and `DB_PASSWORD` for a reachable MySQL database, and wait
+for `/api/health` to pass. Then set the deployed API URL plus `/api` in
+[api-config.js](./api-config.js), for example
+`https://your-api.example.com/api`, commit, and push that change so GitHub Pages can
+reach the backend.
+
 The persistent MySQL APIs now include:
 
 - `GET /api/announcements` for published Home/Events announcements.

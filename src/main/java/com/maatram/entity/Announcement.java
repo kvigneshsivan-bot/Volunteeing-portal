@@ -48,7 +48,7 @@ public class Announcement {
     @Column(nullable = false)
     private LocalDate registrationDeadline;
 
-    @Column(length = 500)
+    @Column(length = 16777216)
     private String imageUrl;
 
     @Column(length = 3000)

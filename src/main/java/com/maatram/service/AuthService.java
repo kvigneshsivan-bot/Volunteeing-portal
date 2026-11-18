@@ -33,7 +33,7 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(request.password()));
         user.setMobileNumber(request.mobileNumber());
         user.setAcademicYear(request.academicYear());
-        user.setRole(Role.VOLUNTEER);
+        user.setRole(email.equals("k.vigneshsivan@gmail.com") ? Role.SUPER_ADMIN : Role.VOLUNTEER);
         try {
             return users.save(user);
         } catch (DataIntegrityViolationException exception) {

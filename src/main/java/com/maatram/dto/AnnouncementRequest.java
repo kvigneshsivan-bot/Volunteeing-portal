@@ -14,6 +14,6 @@ public record AnnouncementRequest(
         @Min(1) int requiredVolunteers,
         @Size(max = 1000) String skillsOrEligibility,
         @NotNull LocalDate registrationDeadline,
-        @Size(max = 500) String imageUrl,
+        @Size(max = 16777216) String imageUrl,
         @Size(max = 3000) String instructions
 ) {}

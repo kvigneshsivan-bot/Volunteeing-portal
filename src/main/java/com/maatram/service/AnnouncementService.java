@@ -114,6 +114,7 @@ public class AnnouncementService {
         announcement.setImageUrl(request.imageUrl());
         announcement.setInstructions(request.instructions());
         announcement.setCreatedBy(admin);
+        announcement.setPublished(true);
         return AnnouncementResponse.from(announcements.save(announcement));
     }
 }

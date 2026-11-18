@@ -21,6 +21,9 @@ public record EventResponse(
         int requiredVolunteers,
         int registeredVolunteers,
         int availableVacancies,
+        LocalDate registrationDeadline,
+        String eligibilityCriteria,
+        String instructions,
         EventStatus status
 ) {
     public static EventResponse from(Event event) {
@@ -38,6 +41,9 @@ public record EventResponse(
                 event.getRequiredVolunteers(),
                 event.getRegisteredVolunteers(),
                 Math.max(0, event.getRequiredVolunteers() - event.getRegisteredVolunteers()),
+                event.getRegistrationDeadline(),
+                event.getEligibilityCriteria(),
+                event.getInstructions(),
                 event.getStatus());
     }
 }

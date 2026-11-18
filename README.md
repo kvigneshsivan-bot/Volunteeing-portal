@@ -3,8 +3,20 @@
 This repository contains the existing responsive Maatram Foundation frontend integrated
 with Supabase Authentication and PostgreSQL.
 
-The backend uses Java 17, Spring Boot, Spring Security, Spring Data JPA, Hibernate, and
+The backend uses Java 25, Spring Boot, Spring Security, Spring Data JPA, Hibernate, and
 MySQL. It intentionally does not contain database credentials.
+
+## SMS broadcast configuration
+
+SMS to registered volunteers uses Twilio. Configure these environment variables on the
+machine or hosting platform; do not add credential values to source code:
+
+- `TWILIO_ACCOUNT_SID`
+- `TWILIO_AUTH_TOKEN`
+- `TWILIO_FROM_NUMBER`
+
+The Admin dashboard's **SMS all volunteers** action sends to volunteers with saved
+mobile numbers. Indian 10-digit numbers are normalized to `+91`.
 
 ## Run the frontend
 

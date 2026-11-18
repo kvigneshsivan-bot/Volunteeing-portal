@@ -54,6 +54,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/events/mine").hasRole("ORGANISER")
                         .requestMatchers("/api/events/pending", "/api/events/*/status").hasRole("SUPER_ADMIN")
                         .requestMatchers("/api/health").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/notifications/broadcast").hasRole("SUPER_ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("SUPER_ADMIN")
                         .requestMatchers("/api/zone/**").hasAnyRole("ZONE_INCHARGE", "SUPER_ADMIN")
                         .anyRequest().authenticated())
@@ -67,7 +68,7 @@ public class SecurityConfig {
                 "http://localhost:5173",
                 "http://127.0.0.1:5173",
                 "https://kvigneshsivan-bot.github.io"));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

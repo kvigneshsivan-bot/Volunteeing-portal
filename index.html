@@ -29,11 +29,11 @@
           <div class="profile-fields" id="profileFields" hidden>
           <p class="profile-heading">Complete your Maatram profile</p>
           <label for="name">Full name</label>
-          <input id="name" name="name" type="text" autocomplete="name" placeholder="Enter your full name" required />
+          <input id="name" name="name" type="text" autocomplete="name" placeholder="Enter your full name" />
           <div class="form-row">
             <div>
               <label for="year">Year</label>
-              <select id="year" name="year" required>
+              <select id="year" name="year">
                 <option value="">Select year</option>
                 <option>1st Year</option>
                 <option>2nd Year</option>
@@ -44,23 +44,23 @@
             </div>
             <div>
               <label for="department">Department</label>
-              <input id="department" name="department" type="text" placeholder="e.g. CSE" required />
+              <input id="department" name="department" type="text" placeholder="e.g. CSE" />
             </div>
           </div>
           <label for="mobile">Mobile number</label>
-          <input id="mobile" name="mobile" type="tel" autocomplete="tel" placeholder="Enter your mobile number" required />
+          <input id="mobile" name="mobile" type="tel" autocomplete="tel" placeholder="Enter your mobile number" />
           <label for="maatramId">Maatram ID</label>
-          <input id="maatramId" name="maatramId" type="text" placeholder="Enter your Maatram ID" required />
+          <input id="maatramId" name="maatramId" type="text" placeholder="Enter your Maatram ID" />
           <label for="college">College</label>
-          <input id="college" name="college" type="text" placeholder="Enter your college name" required />
+          <input id="college" name="college" type="text" placeholder="Enter your college name" />
           <div class="form-row">
             <div>
               <label for="zone">Zone</label>
-              <input id="zone" name="zone" type="text" placeholder="Enter your Zone" required />
+              <input id="zone" name="zone" type="text" placeholder="Enter your Zone" />
             </div>
             <div>
               <label for="zoneInchargeName">Zone In-charge Name</label>
-              <input id="zoneInchargeName" name="zoneInchargeName" type="text" placeholder="Enter Zone In-charge name" required />
+              <input id="zoneInchargeName" name="zoneInchargeName" type="text" placeholder="Enter Zone In-charge name" />
             </div>
           </div>
           <label for="profilePhoto">Profile photo <span class="optional-label">(optional)</span></label>
@@ -269,12 +269,15 @@
           <div class="page-heading"><div><p class="eyebrow">Platform control</p><h1>Admin dashboard</h1><p class="intro">Manage users, NGOs, events, approvals, and platform statistics.</p></div></div>
           <div class="admin-stat-grid"><article class="summary-card"><span>Total volunteers</span><strong id="adminVolunteerCount">1</strong></article><article class="summary-card"><span>Pending NGO approvals</span><strong>0</strong></article><article class="summary-card"><span>Published events</span><strong id="adminEventCount">0</strong></article><article class="summary-card"><span>Verified participation</span><strong>0</strong></article></div>
           <div class="management-grid"><article class="management-panel"><h2>NGO verification</h2><p class="muted">Review organiser applications and verification documents.</p><button class="secondary-button" type="button">Review applications</button></article><article class="management-panel"><h2>Event approvals</h2><p class="muted">Approve or reject submitted volunteering events.</p><button class="secondary-button" type="button">Review events</button></article></div>
+          <div class="management-panel"><h2>Registered students</h2><div id="adminStudentList"><p class="muted">Loading registered students...</p></div></div>
           <div class="management-panel announcement-admin-panel"><h2>Volunteer requirement announcement</h2><p class="muted">Create a LinkedIn-style event post and publish it on the Home page.</p><form id="announcementForm" class="announcement-form"><input name="title" placeholder="Event title" required /><textarea name="description" placeholder="Event description" required></textarea><div><input name="date" type="date" required /><input name="time" type="time" required /><input name="location" placeholder="Location" required /></div><div><input name="required" type="number" min="1" placeholder="Volunteers required" required /><input name="skills" placeholder="Skills / eligibility" /><input name="deadline" type="date" required /></div><label class="file-upload">Event image or poster<input name="image" id="announcementImage" type="file" accept="image/*" /></label><img id="announcementImagePreview" class="announcement-image-preview" alt="Poster preview" hidden /><textarea name="instructions" placeholder="Additional instructions"></textarea><div class="announcement-form-actions"><button class="primary-button" id="announcementSubmitButton" type="submit">Publish announcement <span>→</span></button><button class="secondary-button" id="cancelAnnouncementEdit" type="button" hidden>Cancel edit</button></div></form><div id="adminAnnouncementList"></div><div id="adminVolunteerRegistrations"></div></div>
         </section>
       </main>
     </div>
     </div>
     <script src="./api-config.js"></script>
+    <script src="./supabase-config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     <script>
       const loginPage = document.querySelector('#loginPage');
       const app = document.querySelector('#app');
@@ -292,6 +295,11 @@
       let editingAnnouncementId = null;
       let apiPassword = '';
       const apiBaseUrl = window.MAATRAM_API_BASE_URL || 'http://localhost:8080/api';
+      const maatramSupabase = window.supabase?.createClient(
+        window.MAATRAM_SUPABASE_URL,
+        window.MAATRAM_SUPABASE_PUBLISHABLE_KEY
+      );
+      let supabaseProfile = null;
       const credentialsFields = document.querySelector('#credentialsFields');
       const profileFields = document.querySelector('#profileFields');
       const loginIntro = document.querySelector('#loginIntro');
@@ -339,49 +347,86 @@
       }
 
       async function registerBackendUser(user, password) {
-        try {
-          const response = await fetch(`${apiBaseUrl}/auth/register`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              fullName: user.name,
-              email: user.email,
-              volunteerId: user.maatramId,
-              password,
-              mobileNumber: user.mobile,
-              academicYear: user.year
-            })
+        if (!maatramSupabase) throw new Error('Supabase is not configured.');
+        let authUser = (await maatramSupabase.auth.getSession()).data.session?.user || null;
+        if (!authUser) {
+          const { data, error } = await maatramSupabase.auth.signUp({
+            email: user.email,
+            password,
+            options: {
+              data: { full_name: user.name },
+              emailRedirectTo: window.location.href
+            }
           });
-          if (!response.ok && response.status !== 400) {
-            throw new Error(`Backend registration failed (${response.status})`);
+          if (error) throw error;
+          authUser = data.user;
+          if (!authUser) throw new Error('Please confirm your email, then sign in again.');
+          if (!data.session) {
+            throw new Error('Check your email to confirm your Supabase account, then sign in again.');
           }
-        } catch (error) {
-          console.error('Unable to register the volunteer with the shared backend:', error);
         }
+        const role = String(user.email).toLowerCase() === 'k.vigneshsivan@gmail.com'
+          ? 'SUPER_ADMIN'
+          : 'VOLUNTEER';
+        const { data, error } = await maatramSupabase.from('profiles').upsert({
+          id: authUser.id,
+          name: user.name,
+          register_number: user.maatramId,
+          college_name: user.college,
+          department: user.department,
+          year: user.year,
+          zone: user.zone,
+          zone_incharge_name: user.zoneInchargeName,
+          email: user.email,
+          contact_number: user.mobile,
+          profile_photo_url: user.profilePhoto || null,
+          role
+        }, { onConflict: 'id' }).select().single();
+        if (error) throw error;
+        supabaseProfile = data;
+        return data;
       }
 
       function announcementFromApi(item) {
         return {
           id: String(item.id),
-          title: item.title,
-          description: item.description,
-          date: item.eventDate,
-          time: item.eventTime,
+          title: item.event_name,
+          description: item.event_description,
+          date: item.event_date,
+          time: item.event_time,
           location: item.location,
-          required: item.requiredVolunteers,
-          registrations: item.registeredVolunteers,
-          skills: item.skillsOrEligibility || '',
-          deadline: item.registrationDeadline,
-          image: item.imageUrl || '',
-          instructions: item.instructions || '',
+          required: item.required_volunteer_count,
+          registrations: item.available_count || 0,
+          skills: item.skills_or_eligibility || '',
+          deadline: item.registration_deadline || '',
+          image: item.image_url || '',
+          instructions: item.volunteer_instructions || '',
           published: item.published,
+          closed: item.closed,
           volunteers: []
         };
       }
 
       async function syncPublishedAnnouncements() {
         try {
-          const announcements = (await apiRequest('/announcements')).map(announcementFromApi);
+          if (!maatramSupabase) return;
+          const { data, error } = await maatramSupabase
+            .from('volunteer_requirements')
+            .select('*')
+            .eq('published', true)
+            .order('event_date', { ascending: true });
+          if (error) throw error;
+          const announcements = [];
+          for (const item of data || []) {
+            const mapped = announcementFromApi(item);
+            const { data: summary } = await maatramSupabase.rpc('requirement_response_summary', {
+              p_requirement_id: item.id
+            });
+            const counts = summary?.[0] || { available_count: 0, unavailable_count: 0 };
+            mapped.registrations = Number(counts.available_count || 0);
+            mapped.unavailable = Number(counts.unavailable_count || 0);
+            announcements.push(mapped);
+          }
           localStorage.setItem('maatramAnnouncements', JSON.stringify(announcements));
           renderAnnouncements();
         } catch (error) {
@@ -390,17 +435,45 @@
       }
 
       async function syncAdminAnnouncements() {
-        if (!apiPassword) return;
         try {
-          const announcements = (await apiRequest('/announcements/admin')).map(announcementFromApi);
-          await Promise.all(announcements.map(async (announcement) => {
-            announcement.volunteers = (await apiRequest(`/announcements/admin/${announcement.id}/volunteers`))
-              .map((volunteer) => ({
-                name: volunteer.name,
-                mobile: volunteer.mobileNumber,
-                year: volunteer.academicYear
-              }));
-          }));
+          if (!maatramSupabase) return;
+          const { data: requirements, error } = await maatramSupabase
+            .from('volunteer_requirements')
+            .select('*')
+            .order('created_at', { ascending: false });
+          if (error) throw error;
+          const announcements = [];
+          for (const item of requirements || []) {
+            const announcement = announcementFromApi(item);
+            const { data: responses, error: responsesError } = await maatramSupabase
+              .from('availability_responses')
+              .select('response, student_id, profiles(name, register_number, college_name, department, year, zone, email, contact_number)')
+              .eq('requirement_id', item.id);
+            if (responsesError) throw responsesError;
+            announcement.volunteers = (responses || []).filter((response) => response.response === 'AVAILABLE').map((response) => ({
+              name: response.profiles?.name || 'Unknown student',
+              registerNumber: response.profiles?.register_number || '',
+              college: response.profiles?.college_name || '',
+              department: response.profiles?.department || '',
+              mobile: response.profiles?.contact_number || '',
+              year: response.profiles?.year || '',
+              zone: response.profiles?.zone || '',
+              email: response.profiles?.email || ''
+            }));
+            announcement.notAvailable = (responses || []).filter((response) => response.response === 'NOT_AVAILABLE').map((response) => ({
+              name: response.profiles?.name || 'Unknown student',
+              registerNumber: response.profiles?.register_number || '',
+              college: response.profiles?.college_name || '',
+              department: response.profiles?.department || '',
+              mobile: response.profiles?.contact_number || '',
+              year: response.profiles?.year || '',
+              zone: response.profiles?.zone || '',
+              email: response.profiles?.email || ''
+            }));
+            announcement.registrations = announcement.volunteers.length;
+            announcement.unavailable = announcement.notAvailable.length;
+            announcements.push(announcement);
+          }
           localStorage.setItem('maatramAnnouncements', JSON.stringify(announcements));
           renderAdminAnnouncements();
           renderAnnouncements();
@@ -505,7 +578,7 @@
         const email = String(user.email || account.email || '').trim().toLowerCase();
         if (email === 'k.vigneshsivan@gmail.com') return 'SUPER_ADMIN';
         const role = user.role || account.role || 'VOLUNTEER';
-        return role === 'SUPER_ADMIN' ? 'VOLUNTEER' : role;
+        return role;
       }
 
       function applyRoleVisibility() {
@@ -521,7 +594,7 @@
 
       function announcementStatus(item) {
         const registrations = announcementRegistrationCount(item);
-        return registrations >= Number(item.required || 0) ? 'Request closed' : 'Volunteers available';
+        return item.closed || registrations >= Number(item.required || 0) ? 'Request closed' : 'Volunteers available';
       }
 
       function announcementRegistrationCount(item) {
@@ -571,9 +644,10 @@
       function renderAnnouncements() {
         const announcements = JSON.parse(localStorage.getItem('maatramAnnouncements') || '[]').filter((item) => item.published);
         document.querySelector('#announcementFeed').innerHTML = announcements.length
-          ? announcements.map((item) => `<article class="announcement-card">${item.image ? `<div class="announcement-image-wrap"><img class="announcement-card-image" src="${item.image}" alt="${escapeHTML(item.title)} poster" /><span class="announcement-status ${isAnnouncementClosed(item) ? 'closed' : ''}">${announcementStatus(item)}</span></div>` : ''}<div class="announcement-card-content"><p class="category">Volunteer requirement</p><h3>${escapeHTML(item.title)}</h3><p>${escapeHTML(item.description)}</p><div class="announcement-meta"><span>◷ ${escapeHTML(item.date)} · ${escapeHTML(item.time)}</span><span>📍 ${escapeHTML(item.location)}</span><span>👥 ${item.required} volunteers required · ${announcementRegistrationCount(item)} registered</span><span>Registration closes: ${escapeHTML(item.deadline)}</span></div>${item.skills ? `<p class="announcement-detail"><strong>Skills / eligibility:</strong> ${escapeHTML(item.skills)}</p>` : ''}${item.instructions ? `<p class="announcement-detail"><strong>Instructions:</strong> ${escapeHTML(item.instructions)}</p>` : ''}<p class="announcement-state ${isAnnouncementClosed(item) ? 'closed' : ''}">${announcementStatus(item)}</p><button class="primary-button announcement-available" data-announcement-id="${item.id}" type="button" ${isAnnouncementClosed(item) ? 'disabled' : ''}>${isAnnouncementClosed(item) ? 'Request closed' : 'Available'}</button><button class="secondary-button announcement-volunteers" data-announcement-id="${item.id}" type="button">View volunteers</button></div></article>`).join('')
+          ? announcements.map((item) => `<article class="announcement-card">${item.image ? `<div class="announcement-image-wrap"><img class="announcement-card-image" src="${item.image}" alt="${escapeHTML(item.title)} poster" /><span class="announcement-status ${isAnnouncementClosed(item) ? 'closed' : ''}">${announcementStatus(item)}</span></div>` : ''}<div class="announcement-card-content"><p class="category">Volunteer requirement</p><h3>${escapeHTML(item.title)}</h3><p>${escapeHTML(item.description)}</p><div class="announcement-meta"><span>◷ ${escapeHTML(item.date)} · ${escapeHTML(item.time)}</span><span>📍 ${escapeHTML(item.location)}</span><span>👥 ${item.required} volunteers required · ${announcementRegistrationCount(item)} available · ${Number(item.unavailable || 0)} not available</span><span>Registration closes: ${escapeHTML(item.deadline)}</span></div>${item.skills ? `<p class="announcement-detail"><strong>Skills / eligibility:</strong> ${escapeHTML(item.skills)}</p>` : ''}${item.instructions ? `<p class="announcement-detail"><strong>Instructions:</strong> ${escapeHTML(item.instructions)}</p>` : ''}<p class="announcement-state ${isAnnouncementClosed(item) ? 'closed' : ''}">${announcementStatus(item)}</p><button class="primary-button announcement-available" data-announcement-id="${item.id}" type="button" ${isAnnouncementClosed(item) ? 'disabled' : ''}>${isAnnouncementClosed(item) ? 'Request closed' : 'Available'}</button><button class="secondary-button announcement-not-available" data-announcement-id="${item.id}" type="button" ${isAnnouncementClosed(item) ? 'disabled' : ''}>Not available</button><button class="secondary-button announcement-volunteers" data-announcement-id="${item.id}" type="button">View volunteers</button></div></article>`).join('')
           : '<p class="muted">No volunteer requirements have been published yet.</p>';
         document.querySelectorAll('.announcement-available').forEach((button) => button.addEventListener('click', () => registerForAnnouncement(button.dataset.announcementId)));
+        document.querySelectorAll('.announcement-not-available').forEach((button) => button.addEventListener('click', () => updateAnnouncementResponse(button.dataset.announcementId, 'NOT_AVAILABLE')));
         document.querySelectorAll('.announcement-volunteers').forEach((button) => button.addEventListener('click', () => showAnnouncementVolunteers(button.dataset.announcementId)));
         renderRequestStatusBanner();
         if (document.querySelector('#eventPageList')) renderEventPage();
@@ -589,18 +663,37 @@
       function renderAdminAnnouncements() {
         const announcements = JSON.parse(localStorage.getItem('maatramAnnouncements') || '[]');
         document.querySelector('#adminAnnouncementList').innerHTML = announcements.length
-          ? announcements.map((item) => `<div class="admin-announcement-row"><strong>${escapeHTML(item.title)}</strong><span>${item.published ? 'Published' : 'Draft'}</span><button class="secondary-button edit-announcement" data-id="${item.id}" type="button">Edit</button><button class="secondary-button toggle-announcement" data-id="${item.id}" type="button">${item.published ? 'Unpublish' : 'Publish'}</button><button class="secondary-button delete-announcement" data-id="${item.id}" type="button">Delete</button></div>`).join('')
+          ? announcements.map((item) => `<div class="admin-announcement-row"><strong>${escapeHTML(item.title)}</strong><span>${item.closed ? 'Closed' : item.published ? 'Published' : 'Draft'}</span><button class="secondary-button edit-announcement" data-id="${item.id}" type="button">Edit</button><button class="secondary-button toggle-announcement" data-id="${item.id}" type="button">${item.published ? 'Unpublish' : 'Publish'}</button><button class="secondary-button close-announcement" data-id="${item.id}" type="button">${item.closed ? 'Reopen' : 'Close'}</button><button class="secondary-button delete-announcement" data-id="${item.id}" type="button">Delete</button></div>`).join('')
           : '<p class="muted">No announcements created.</p>';
-        document.querySelector('#adminVolunteerRegistrations').innerHTML = announcements.some((item) => (item.volunteers || []).length)
-          ? `<h3 class="admin-volunteer-heading">Available volunteers</h3>${announcements.filter((item) => (item.volunteers || []).length).map((item) => `<section class="admin-volunteer-group"><strong>${escapeHTML(item.title)}</strong><div class="admin-volunteer-list">${item.volunteers.map((volunteer) => `<div><span>${escapeHTML(volunteer.name)}</span><span>${escapeHTML(volunteer.mobile || 'Not provided')}</span><span>${escapeHTML(volunteer.year || 'Not provided')}</span></div>`).join('')}</div></section>`).join('')}`
-          : '<p class="muted">No volunteers have marked themselves available yet.</p>';
+        document.querySelector('#adminVolunteerRegistrations').innerHTML = announcements.some((item) => (item.volunteers || []).length || (item.notAvailable || []).length)
+          ? `<h3 class="admin-volunteer-heading">Event-wise volunteer responses</h3>${announcements.filter((item) => (item.volunteers || []).length || (item.notAvailable || []).length).map((item) => `<section class="admin-volunteer-group"><strong>${escapeHTML(item.title)}</strong><p>Available: ${(item.volunteers || []).length} · Not available: ${(item.notAvailable || []).length}</p><h4>Available students</h4><div class="admin-volunteer-list">${(item.volunteers || []).length ? item.volunteers.map((volunteer) => `<div><span>${escapeHTML(volunteer.name)}</span><span>${escapeHTML(volunteer.registerNumber || 'No register number')}</span><span>${escapeHTML(volunteer.college || 'No college')}</span><span>${escapeHTML(volunteer.department || 'No department')}</span><span>${escapeHTML(volunteer.year || 'No year')}</span><span>${escapeHTML(volunteer.zone || 'No zone')}</span><span>${escapeHTML(volunteer.mobile || 'No contact')}</span><span>${escapeHTML(volunteer.email || 'No email')}</span></div>`).join('') : '<p class="muted">No available responses.</p>'}</div><h4>Not available students</h4><div class="admin-volunteer-list">${(item.notAvailable || []).length ? item.notAvailable.map((volunteer) => `<div><span>${escapeHTML(volunteer.name)}</span><span>${escapeHTML(volunteer.registerNumber || 'No register number')}</span><span>${escapeHTML(volunteer.college || 'No college')}</span><span>${escapeHTML(volunteer.department || 'No department')}</span><span>${escapeHTML(volunteer.year || 'No year')}</span><span>${escapeHTML(volunteer.zone || 'No zone')}</span><span>${escapeHTML(volunteer.mobile || 'No contact')}</span><span>${escapeHTML(volunteer.email || 'No email')}</span></div>`).join('') : '<p class="muted">No unavailable responses.</p>'}</div></section>`).join('')}`
+          : '<p class="muted">No students have responded yet.</p>';
         document.querySelectorAll('.edit-announcement').forEach((button) => button.addEventListener('click', () => beginAnnouncementEdit(button.dataset.id)));
         document.querySelectorAll('.toggle-announcement').forEach((button) => button.addEventListener('click', async () => {
           const items = JSON.parse(localStorage.getItem('maatramAnnouncements') || '[]');
           const item = items.find((entry) => entry.id === button.dataset.id);
           if (!item) return;
           try {
-            await apiRequest(`/announcements/admin/${button.dataset.id}/publish?value=${!item.published}`, { method: 'PATCH' });
+            const { error } = await maatramSupabase
+              .from('volunteer_requirements')
+              .update({ published: !item.published, updated_at: new Date().toISOString() })
+              .eq('id', button.dataset.id);
+            if (error) throw error;
+            await syncAdminAnnouncements();
+          } catch (error) {
+            window.alert(error.message);
+          }
+        }));
+        document.querySelectorAll('.close-announcement').forEach((button) => button.addEventListener('click', async () => {
+          const items = JSON.parse(localStorage.getItem('maatramAnnouncements') || '[]');
+          const item = items.find((entry) => entry.id === button.dataset.id);
+          if (!item) return;
+          try {
+            const { error } = await maatramSupabase
+              .from('volunteer_requirements')
+              .update({ closed: !item.closed, updated_at: new Date().toISOString() })
+              .eq('id', button.dataset.id);
+            if (error) throw error;
             await syncAdminAnnouncements();
           } catch (error) {
             window.alert(error.message);
@@ -608,7 +701,11 @@
         }));
         document.querySelectorAll('.delete-announcement').forEach((button) => button.addEventListener('click', async () => {
           try {
-            await apiRequest(`/announcements/admin/${button.dataset.id}`, { method: 'DELETE' });
+            const { error } = await maatramSupabase
+              .from('volunteer_requirements')
+              .delete()
+              .eq('id', button.dataset.id);
+            if (error) throw error;
             await syncAdminAnnouncements();
           } catch (error) {
             window.alert(error.message);
@@ -652,15 +749,32 @@
       }
 
       async function registerForAnnouncement(id) {
-        const user = currentUser();
-        if (!apiPassword) {
-          window.alert('Please sign in again to mark yourself available.');
+        return updateAnnouncementResponse(id, 'AVAILABLE');
+      }
+
+      async function updateAnnouncementResponse(id, response) {
+        if (!maatramSupabase) {
+          window.alert('Supabase is not configured.');
+          return;
+        }
+        const { data: sessionData } = await maatramSupabase.auth.getSession();
+        if (!sessionData.session?.user) {
+          window.alert('Please sign in again to respond to this request.');
           return;
         }
         try {
-          await apiRequest(`/announcements/${id}/availability`, { method: 'POST' });
+          const { error } = await maatramSupabase
+            .from('availability_responses')
+            .upsert({
+              requirement_id: id,
+              student_id: sessionData.session.user.id,
+              response
+            }, { onConflict: 'requirement_id,student_id' });
+          if (error) throw error;
           await syncPublishedAnnouncements();
-          window.alert('You are marked as available for this request.');
+          window.alert(response === 'AVAILABLE'
+            ? 'You are marked as available for this request.'
+            : 'You are marked as not available for this request.');
         } catch (error) {
           window.alert(error.message);
         }
@@ -673,9 +787,10 @@
           return !search || text.includes(search);
         });
         document.querySelector('#eventPageList').innerHTML = events.length
-          ? events.map((item) => `<article class="event-page-card">${item.image ? `<img class="event-page-image" src="${item.image}" alt="${escapeHTML(item.title)} poster" />` : ''}<p class="category">Admin announcement</p><h3>${escapeHTML(item.title)}</h3><p>◷ ${escapeHTML(item.date)} · ${escapeHTML(item.time)} · 📍 ${escapeHTML(item.location)}<br>${escapeHTML(item.description)}</p><p class="event-page-requirement">${item.required} volunteers required · ${announcementStatus(item)}</p><small>Registration closes: ${escapeHTML(item.deadline)}</small><button class="primary-button event-available" data-announcement-id="${item.id}" type="button" ${isAnnouncementClosed(item) ? 'disabled' : ''}>${isAnnouncementClosed(item) ? 'Request closed' : 'Available'}</button></article>`).join('')
+          ? events.map((item) => `<article class="event-page-card">${item.image ? `<img class="event-page-image" src="${item.image}" alt="${escapeHTML(item.title)} poster" />` : ''}<p class="category">Admin announcement</p><h3>${escapeHTML(item.title)}</h3><p>◷ ${escapeHTML(item.date)} · ${escapeHTML(item.time)} · 📍 ${escapeHTML(item.location)}<br>${escapeHTML(item.description)}</p><p class="event-page-requirement">${item.required} volunteers required · ${announcementRegistrationCount(item)} available · ${Number(item.unavailable || 0)} not available · ${announcementStatus(item)}</p><small>Registration closes: ${escapeHTML(item.deadline)}</small><button class="primary-button event-available" data-announcement-id="${item.id}" type="button" ${isAnnouncementClosed(item) ? 'disabled' : ''}>${isAnnouncementClosed(item) ? 'Request closed' : 'Available'}</button><button class="secondary-button event-not-available" data-announcement-id="${item.id}" type="button" ${isAnnouncementClosed(item) ? 'disabled' : ''}>Not available</button></article>`).join('')
           : '<p class="muted">No Admin events have been published yet.</p>';
         document.querySelectorAll('.event-available').forEach((button) => button.addEventListener('click', () => registerForAnnouncement(button.dataset.announcementId)));
+        document.querySelectorAll('.event-not-available').forEach((button) => button.addEventListener('click', () => updateAnnouncementResponse(button.dataset.announcementId, 'NOT_AVAILABLE')));
       }
 
       function isSchoolVisit(item) {
@@ -734,10 +849,27 @@
           : '<p class="muted">Approved contributions will appear here.</p>';
       }
 
-      function renderRolePages() {
+      async function renderRolePages() {
         const publishedEvents = JSON.parse(localStorage.getItem('maatramAnnouncements') || '[]').filter((item) => item.published);
         document.querySelector('#organiserEventCount').textContent = publishedEvents.length;
         document.querySelector('#adminEventCount').textContent = publishedEvents.length;
+        if (!maatramSupabase) return;
+        const { count: studentCount } = await maatramSupabase
+          .from('profiles')
+          .select('id', { count: 'exact', head: true })
+          .eq('role', 'VOLUNTEER');
+        document.querySelector('#adminVolunteerCount').textContent = Number(studentCount || 0);
+        const { data: students } = await maatramSupabase
+          .from('profiles')
+          .select('name, register_number, college_name, department, year, zone, email, contact_number')
+          .eq('role', 'VOLUNTEER')
+          .order('name', { ascending: true });
+        const list = document.querySelector('#adminStudentList');
+        if (list) {
+          list.innerHTML = (students || []).length
+            ? `<div class="admin-volunteer-list">${students.map((student) => `<div><span>${escapeHTML(student.name)}</span><span>${escapeHTML(student.register_number)}</span><span>${escapeHTML(student.college_name)}</span><span>${escapeHTML(student.department)}</span><span>${escapeHTML(student.year)}</span><span>${escapeHTML(student.zone)}</span><span>${escapeHTML(student.contact_number)}</span><span>${escapeHTML(student.email)}</span></div>`).join('')}</div>`
+            : '<p class="muted">No registered students yet.</p>';
+        }
       }
 
       function showPage(page) {
@@ -784,17 +916,45 @@
               formError.textContent = 'This email does not match the saved Maatram profile.';
               return;
             }
-            if (savedAccount.passwordHash && savedAccount.passwordHash !== passwordHash) {
-              formError.textContent = 'Incorrect password.';
+            try {
+              if (!maatramSupabase) throw new Error('Supabase is not configured.');
+              const { data, error } = await maatramSupabase.auth.signInWithPassword({
+                email: user.email,
+                password: user.password
+              });
+              if (error) throw error;
+              const { data: profile, error: profileError } = await maatramSupabase
+                .from('profiles')
+                .select('*')
+                .eq('id', data.user.id)
+                .maybeSingle();
+              if (profileError) throw profileError;
+              if (!profile) throw new Error('Your student profile was not found. Please complete registration again.');
+              supabaseProfile = profile;
+              const savedProfile = {
+                name: profile.name,
+                maatramId: profile.register_number,
+                department: profile.department,
+                year: profile.year,
+                mobile: profile.contact_number,
+                college: profile.college_name,
+                zone: profile.zone,
+                zoneInchargeName: profile.zone_incharge_name,
+                email: profile.email,
+                profilePhoto: profile.profile_photo_url || '',
+                role: profile.role
+              };
+              savedAccount = { email: profile.email, maatramId: profile.register_number, role: profile.role };
+              localStorage.setItem('maatramAccount', JSON.stringify(savedAccount));
+              localStorage.setItem('maatramUser', JSON.stringify(savedProfile));
+              apiPassword = user.password;
+              showDashboard(savedProfile);
+              syncPublishedAnnouncements();
+              return;
+            } catch (error) {
+              formError.textContent = error.message || 'Incorrect email or password.';
               return;
             }
-            const savedProfile = JSON.parse(localStorage.getItem('maatramUser') || 'null');
-            apiPassword = user.password;
-            if (user.email !== 'k.vigneshsivan@gmail.com' && savedProfile) {
-              await registerBackendUser(savedProfile, user.password);
-            }
-            showDashboard(savedProfile);
-            return;
           }
           if (!savedAccount) {
             pendingCredentials = { email: user.email, password: user.password };
@@ -818,19 +978,27 @@
           if (profilePhoto) user.profilePhoto = profilePhoto;
           else if (editingProfile) user.profilePhoto = JSON.parse(localStorage.getItem('maatramUser') || '{}').profilePhoto || '';
           apiPassword = user.password;
-          if (user.email !== 'k.vigneshsivan@gmail.com') await registerBackendUser(user, user.password);
-          savedAccount = {
-            email: user.email,
-            maatramId: user.maatramId,
-            passwordHash
-          };
-          delete user.password;
-          localStorage.setItem('maatramAccount', JSON.stringify(savedAccount));
-          localStorage.setItem('maatramUser', JSON.stringify(user));
-          formError.textContent = '';
-          editingProfile = false;
-          pendingCredentials = null;
-          showDashboard(user);
+          try {
+            const profile = await registerBackendUser(user, user.password);
+            savedAccount = {
+              email: user.email,
+              maatramId: user.maatramId,
+              role: profile.role
+            };
+            delete user.password;
+            user.role = profile.role;
+            localStorage.setItem('maatramAccount', JSON.stringify(savedAccount));
+            localStorage.setItem('maatramUser', JSON.stringify(user));
+            formError.textContent = '';
+            editingProfile = false;
+            pendingCredentials = null;
+            showDashboard(user);
+            syncPublishedAnnouncements();
+          } catch (error) {
+            formError.textContent = /rate limit/i.test(error.message || '')
+              ? 'Supabase email limit reached. Wait before trying again, or sign in if this account already exists.'
+              : error.message || 'Unable to save your Supabase profile.';
+          }
         };
         if (!profileFile) {
           saveUser('');
@@ -843,7 +1011,8 @@
         }
       });
 
-      document.querySelector('#logoutButton').addEventListener('click', () => {
+      document.querySelector('#logoutButton').addEventListener('click', async () => {
+        if (maatramSupabase) await maatramSupabase.auth.signOut();
         localStorage.removeItem('maatramUser');
         app.hidden = true;
         loginPage.hidden = false;
@@ -963,7 +1132,7 @@
           reader.addEventListener('error', () => reject(new Error('Unable to read proof photo.')));
           reader.readAsDataURL(file);
         });
-        Promise.all(selectedProofFiles.map(toDataUrl)).then((photos) => {
+        Promise.all(selectedProofFiles.map(toDataUrl)).then(async (photos) => {
           const now = new Date().toLocaleDateString();
           const user = currentUser();
           const post = { id: crypto.randomUUID(), author: user.name, eventName: selectedActivity, activityType: selectedActivityData.type, description: evidenceNotes, photos, date: now, status: 'Pending verification', beneficiaries: 0 };
@@ -976,7 +1145,39 @@
           localStorage.setItem(evidenceKey('notes'), evidenceNotes);
           renderVolunteerPosts();
           renderDashboard();
-          uploadError.textContent = 'Your volunteering post was published and saved for verification.';
+          try {
+            if (maatramSupabase) {
+              const { data: sessionData } = await maatramSupabase.auth.getSession();
+              const studentId = sessionData.session?.user?.id;
+              if (studentId) {
+                const photoUrls = [];
+                for (const file of selectedProofFiles) {
+                  const path = `${studentId}/${crypto.randomUUID()}-${file.name}`;
+                  const { error: uploadError } = await maatramSupabase.storage
+                    .from('volunteer-contributions')
+                    .upload(path, file, { upsert: false });
+                  if (uploadError) throw uploadError;
+                  const { data: publicUrl } = maatramSupabase.storage
+                    .from('volunteer-contributions')
+                    .getPublicUrl(path);
+                  photoUrls.push(publicUrl.publicUrl);
+                }
+                const { error } = await maatramSupabase.from('volunteer_contributions').insert({
+                  id: post.id,
+                  student_id: studentId,
+                  event_name: selectedActivity,
+                  activity_type: selectedActivityData.type,
+                  description: evidenceNotes,
+                  photo_urls: photoUrls,
+                  status: 'PENDING'
+                });
+                if (error) throw error;
+              }
+            }
+            uploadError.textContent = 'Your volunteering post was published and saved for verification.';
+          } catch (error) {
+            uploadError.textContent = `The post was saved locally, but Supabase storage failed: ${error.message}`;
+          }
           document.querySelector('#submitProof').disabled = true;
         }).catch(() => {
           uploadError.textContent = 'The proof photos could not be saved. Please try again.';
@@ -1011,6 +1212,39 @@
       document.querySelector('#backToHomeFromVolunteering').addEventListener('click', () => {
         document.querySelector('.nav-link[data-page="home"]').classList.add('active');
         showPage('home');
+        if (maatramSupabase) {
+          maatramSupabase.auth.getSession().then(async ({ data }) => {
+            if (!data.session?.user) return;
+            const { data: profile, error } = await maatramSupabase
+              .from('profiles')
+              .select('*')
+              .eq('id', data.session.user.id)
+              .maybeSingle();
+            if (error || !profile) return;
+            const restoredUser = {
+              name: profile.name,
+              maatramId: profile.register_number,
+              department: profile.department,
+              year: profile.year,
+              mobile: profile.contact_number,
+              college: profile.college_name,
+              zone: profile.zone,
+              zoneInchargeName: profile.zone_incharge_name,
+              email: profile.email,
+              profilePhoto: profile.profile_photo_url || '',
+              role: profile.role
+            };
+            supabaseProfile = profile;
+            localStorage.setItem('maatramUser', JSON.stringify(restoredUser));
+            localStorage.setItem('maatramAccount', JSON.stringify({
+              email: profile.email,
+              maatramId: profile.register_number,
+              role: profile.role
+            }));
+            showDashboard(restoredUser);
+            syncPublishedAnnouncements();
+          });
+        }
         syncPublishedAnnouncements();
       });
 
@@ -1024,34 +1258,41 @@
         event.preventDefault();
         const values = Object.fromEntries(new FormData(event.currentTarget).entries());
         const file = document.querySelector('#announcementImage').files[0];
-        if (!apiPassword) {
-          window.alert('Please sign in again before managing announcements.');
+        if (!maatramSupabase) {
+          window.alert('Supabase is not configured.');
           return;
         }
         const save = async (image) => {
           const payload = {
-            title: values.title,
-            description: values.description,
-            eventDate: values.date,
-            eventTime: values.time,
+            event_name: values.title,
+            event_description: values.description,
+            event_date: values.date,
+            event_time: values.time,
             location: values.location,
-            requiredVolunteers: Number(values.required),
-            skillsOrEligibility: values.skills || '',
-            registrationDeadline: values.deadline,
-            imageUrl: image && image.length <= 500 ? image : '',
-            instructions: values.instructions || ''
+            required_volunteer_count: Number(values.required),
+            skills_or_eligibility: values.skills || '',
+            registration_deadline: values.deadline,
+            image_url: image || '',
+            volunteer_instructions: values.instructions || '',
+            published: true,
+            updated_at: new Date().toISOString()
           };
           try {
             if (editingAnnouncementId) {
-              await apiRequest(`/announcements/admin/${editingAnnouncementId}`, {
-                method: 'PUT',
-                body: JSON.stringify(payload)
-              });
+              const { error } = await maatramSupabase
+                .from('volunteer_requirements')
+                .update(payload)
+                .eq('id', editingAnnouncementId);
+              if (error) throw error;
             } else {
-              await apiRequest('/announcements/admin', {
-                method: 'POST',
-                body: JSON.stringify(payload)
-              });
+              const { data: sessionData } = await maatramSupabase.auth.getSession();
+              const { error } = await maatramSupabase
+                .from('volunteer_requirements')
+                .insert({
+                  ...payload,
+                  created_by: sessionData.session?.user?.id || null
+                });
+              if (error) throw error;
             }
             resetAnnouncementForm();
             await syncAdminAnnouncements();
@@ -1060,9 +1301,25 @@
           }
         };
         if (file) {
-          const reader = new FileReader();
-          reader.addEventListener('load', () => save(reader.result));
-          reader.readAsDataURL(file);
+          if (!file.type.startsWith('image/') || file.size > 5 * 1024 * 1024) {
+            window.alert('Please choose an image smaller than 5 MB.');
+            return;
+          }
+          try {
+            const { data: sessionData } = await maatramSupabase.auth.getSession();
+            if (!sessionData.session?.user) throw new Error('Please sign in again before uploading an announcement image.');
+            const path = `${sessionData.session.user.id}/${crypto.randomUUID()}-${file.name}`;
+            const { error } = await maatramSupabase.storage
+              .from('announcement-images')
+              .upload(path, file, { upsert: false });
+            if (error) throw error;
+            const { data: publicUrl } = maatramSupabase.storage
+              .from('announcement-images')
+              .getPublicUrl(path);
+            await save(publicUrl.publicUrl);
+          } catch (error) {
+            window.alert(error.message);
+          }
         } else {
           const existing = JSON.parse(localStorage.getItem('maatramAnnouncements') || '[]')
             .find((item) => item.id === editingAnnouncementId);

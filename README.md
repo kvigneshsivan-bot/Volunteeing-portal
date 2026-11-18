@@ -1,8 +1,7 @@
 # Maatram Foundation Volunteer Hub
 
-This repository contains the existing responsive Maatram Foundation frontend and the
-initial Spring Boot backend foundation. The frontend demo remains available and continues
-to use localStorage until the later API-integration phase.
+This repository contains the existing responsive Maatram Foundation frontend integrated
+with Supabase Authentication and PostgreSQL.
 
 The backend uses Java 17, Spring Boot, Spring Security, Spring Data JPA, Hibernate, and
 MySQL. It intentionally does not contain database credentials.
@@ -31,47 +30,24 @@ MySQL, show in the Admin dashboard, and automatically display `Request closed` w
 required count is reached. The frontend refreshes published announcements from the API so
 other volunteer browsers can see newly published requests.
 
-## Run the Spring Boot backend
+## Configure Supabase
 
-Set these environment variables before starting the backend:
+1. Open the Supabase SQL Editor.
+2. Run [supabase-migration.sql](./supabase-migration.sql).
+3. In Supabase Authentication settings, enable email/password sign-in.
+4. Keep [supabase-config.js](./supabase-config.js) pointed at the Supabase project.
 
-```powershell
-$env:DB_URL = "jdbc:mysql://localhost:3306/maatram?createDatabaseIfNotExist=true&serverTimezone=UTC"
-$env:DB_USERNAME = "root"
-$env:DB_PASSWORD = "your-local-password"
-```
+The integration stores:
 
-Run the API from the project root:
+- Student profiles in `public.profiles`
+- Volunteer requirements in `public.volunteer_requirements`
+- Available/not available responses in `public.availability_responses`
+- Volunteer contributions and proof image URLs in `public.volunteer_contributions`
+- Announcement poster images in the public `announcement-images` storage bucket
 
-```powershell
-# Portable tools installed in .tools when system-wide installation is unavailable
-$env:JAVA_HOME = "$PWD\.tools\jdk-17.0.21+9"
-$env:Path = "$env:JAVA_HOME\bin;$PWD\.tools\apache-maven-3.9.9\bin;$env:Path"
-mvn spring-boot:run
-```
+The existing frontend still uses `localStorage` only as a visual cache. Supabase is the
+persistent source for authentication, profiles, requirements, availability responses,
+and student contributions.
 
-The health endpoint is available at `http://localhost:8080/api/health`.
-Volunteer registration is `POST /api/auth/register`. Authenticated requests currently
-use HTTP Basic authentication with the registered email and password. Administrative
-zone and college endpoints are protected by the `SUPER_ADMIN` role.
-
-## Deploy the backend
-
-The repository includes [Dockerfile](./Dockerfile) and [render.yaml](./render.yaml)
-for a Render web service. The default deployment uses a file-based H2 database, so
-no paid MySQL service is required for a demo. Wait for `/api/health` to pass. For
-production persistence, set `DB_URL`, `DB_USERNAME`, and `DB_PASSWORD` for a
-reachable MySQL database. Then set the deployed API URL plus `/api` in
-[api-config.js](./api-config.js), for example
-`https://your-api.example.com/api`, commit, and push that change so GitHub Pages can
-reach the backend.
-
-The persistent MySQL APIs now include:
-
-- `GET /api/announcements` for published Home/Events announcements.
-- `POST`, `PUT`, `PATCH /api/announcements/admin...`, and `DELETE /api/announcements/admin/{id}` for Super Admin announcement management.
-- `POST /api/contributions` and `GET /api/contributions/mine` for volunteer contribution posts.
-- `GET /api/contributions/mine/achievement` for independent School Visit and Physical Verification levels.
-- `PATCH /api/contributions/{id}/status` for Zone In-charge/Super Admin verification and automatic achievement updates.
-
-No database credentials or private keys should be committed to this repository.
+No database password or service-role key is required in the frontend. Only the
+publishable/anon key belongs in [supabase-config.js](./supabase-config.js).

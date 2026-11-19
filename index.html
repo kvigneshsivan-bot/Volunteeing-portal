@@ -1192,7 +1192,9 @@
       document.querySelector('#logoutButton').addEventListener('click', async () => {
         if (maatramSupabase) await maatramSupabase.auth.signOut();
         localStorage.removeItem('maatramUser');
+        localStorage.removeItem('maatramAccount');
         sessionStorage.removeItem('maatramApiPassword');
+        savedAccount = null;
         app.hidden = true;
         loginPage.hidden = false;
         loginForm.reset();

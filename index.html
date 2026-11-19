@@ -1536,6 +1536,9 @@
 
       document.querySelector('#settingsLink').addEventListener('click', (event) => {
         event.preventDefault();
+        document.querySelector('.nav-link.active')?.classList.remove('active');
+        document.querySelector('.nav-link[data-page="home"]').classList.add('active');
+        showPage('home');
         document.querySelector('#editProfileButton').click();
       });
 

@@ -1125,6 +1125,19 @@
             if (/rate limit/i.test(message)) {
               formError.textContent = 'Supabase email limit reached. Wait a few minutes and try again. If this account already exists, sign in from the first screen with its password.';
             } else if (/already registered|already been registered|user already exists/i.test(message)) {
+              try {
+                const backendProfile = await signInBackendUser(user.email, user.password);
+                if (backendProfile) {
+                  formError.textContent = '';
+                  editingProfile = false;
+                  pendingCredentials = null;
+                  showDashboard(backendProfile);
+                  syncPublishedAnnouncements();
+                  return;
+                }
+              } catch (signInError) {
+                // Keep the existing account message below if backend sign-in also fails.
+              }
               formError.textContent = 'This email is already registered. Go back to sign in and use the account password.';
             } else {
               formError.textContent = message || 'Unable to save your Supabase profile.';

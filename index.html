@@ -1485,18 +1485,6 @@
                 photoUrls.push(publicUrl.publicUrl);
               }
               proofPhotoUrls = photoUrls;
-              if (studentId) {
-                const { error } = await maatramSupabase.from('volunteer_contributions').insert({
-                  id: post.id,
-                  student_id: studentId,
-                  event_name: selectedActivity,
-                  activity_type: selectedActivityData.type,
-                  description: evidenceNotes,
-                  photo_urls: photoUrls,
-                  status: 'PENDING'
-                });
-                if (error) throw error;
-              }
             }
             if (proofPhotoUrls.length < 3) {
               throw new Error('Proof photos could not be uploaded. Please sign in again and retry.');

@@ -847,6 +847,10 @@ a {
   display: none;
 }
 
+.content.app-page-open.folder-open > #activityWorkspace {
+  display: block;
+}
+
 .app-page {
   display: block;
 }

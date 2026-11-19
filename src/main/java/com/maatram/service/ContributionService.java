@@ -9,11 +9,13 @@ import com.maatram.repository.VolunteerContributionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ContributionService {
     private final VolunteerContributionRepository contributions;
     private final VolunteerAchievementRepository achievements;
@@ -36,7 +38,11 @@ public class ContributionService {
         contribution.setProofPhotos(List.copyOf(request.proofPhotos()));
         contribution.setActivityDate(request.activityDate());
         ContributionResponse response = ContributionResponse.from(contributions.save(contribution));
-        emailNotificationService.notifyAdmin(response);
+        try {
+            emailNotificationService.notifyAdmin(response);
+        } catch (RuntimeException exception) {
+            log.error("Contribution {} was saved, but admin email notification failed", response.id(), exception);
+        }
         return response;
     }
 

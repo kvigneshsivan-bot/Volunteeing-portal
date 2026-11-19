@@ -26,6 +26,28 @@ Open `index.html` directly in a browser, or serve this folder with a static web 
 python -m http.server 5173
 ```
 
+## Deploy the backend for free on Render
+
+The repository includes a Render Blueprint that uses the free web-service plan.
+Deploy it from GitHub:
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/kvigneshsivan-bot/Volunteeing-portal)
+
+In the Render deployment page:
+
+1. Sign in to or create a free Render account.
+2. Select the `maatram-api` service.
+3. Keep the plan set to `Free`.
+4. Deploy the Blueprint.
+5. Copy the generated service URL, for example `https://maatram-api-xxxx.onrender.com`.
+
+After deployment, set [api-config.js](./api-config.js) to the generated URL followed by `/api`
+(for example, `https://maatram-api-xxxx.onrender.com/api`) and push the change.
+
+The free service may sleep when idle. It can take 30–60 seconds to wake up on the next
+request. The H2 demo database is ephemeral on Render's free tier; use a persistent database
+if permanent server-side data is required.
+
 The supplied Maatram Foundation logo is stored at `assets/maatram-logo.png`.
 
 The current frontend supports a two-step first-time setup: email/password (or the Google

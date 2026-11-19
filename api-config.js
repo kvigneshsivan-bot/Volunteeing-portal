@@ -1,2 +1,2 @@
-// Set this to the deployed backend URL followed by /api.
-window.MAATRAM_API_BASE_URL = 'http://localhost:8080/api';
+// Deployed Spring Boot API URL.
+window.MAATRAM_API_BASE_URL = 'https://maatram-api.onrender.com/api';

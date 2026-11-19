@@ -1149,6 +1149,61 @@
               } catch (signInError) {
                 // Keep the existing account message below if backend sign-in also fails.
               }
+              try {
+                if (maatramSupabase) {
+                  const signIn = await maatramSupabase.auth.signInWithPassword({
+                    email: user.email,
+                    password: user.password
+                  });
+                  if (!signIn.error && signIn.data.session) {
+                    supabaseProfile = signIn.data.user;
+                    const authProfile = await maatramSupabase
+                      .from('profiles')
+                      .select('*')
+                      .eq('id', signIn.data.user.id)
+                      .maybeSingle();
+                    const profile = authProfile.data || {
+                      name: user.name,
+                      register_number: user.maatramId,
+                      department: user.department,
+                      year: user.year,
+                      contact_number: user.mobile,
+                      college_name: user.college,
+                      zone: user.zone,
+                      zone_incharge_name: user.zoneInchargeName,
+                      email: user.email,
+                      profile_photo_url: user.profilePhoto || '',
+                      role: user.email === 'k.vigneshsivan@gmail.com' ? 'SUPER_ADMIN' : 'VOLUNTEER'
+                    };
+                    const fallbackUser = {
+                      name: profile.name,
+                      maatramId: profile.register_number,
+                      department: profile.department,
+                      year: profile.year,
+                      mobile: profile.contact_number,
+                      college: profile.college_name,
+                      zone: profile.zone,
+                      zoneInchargeName: profile.zone_incharge_name,
+                      email: profile.email,
+                      profilePhoto: profile.profile_photo_url || '',
+                      role: profile.role
+                    };
+                    savedAccount = { email: fallbackUser.email, maatramId: fallbackUser.maatramId, role: fallbackUser.role };
+                    localStorage.setItem('maatramAccount', JSON.stringify(savedAccount));
+                    localStorage.setItem('maatramUser', JSON.stringify(fallbackUser));
+                    apiPassword = user.password;
+                    sessionStorage.setItem('maatramApiPassword', user.password);
+                    formError.textContent = '';
+                    editingProfile = false;
+                    pendingCredentials = null;
+                    showDashboard(fallbackUser);
+                    syncPublishedAnnouncements();
+                    return;
+                  }
+                }
+              } catch (supabaseSignInError) {
+                // Keep the existing account message when neither backend nor Supabase accepts the password.
+              }
               formError.textContent = 'This email is already registered. Go back to sign in and use the account password.';
             } else {
               formError.textContent = message || 'Unable to save your Supabase profile.';

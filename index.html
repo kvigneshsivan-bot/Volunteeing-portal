@@ -1112,8 +1112,8 @@
           } catch (error) {
             // Fall through to the existing Supabase sign-in flow.
           }
-          if (savedAccount && !editingProfile) {
-            if (savedAccount.email !== user.email) {
+          if (!editingProfile) {
+            if (savedAccount && savedAccount.email !== user.email) {
               formError.textContent = 'This email does not match the saved Maatram profile.';
               return;
             }
@@ -1154,8 +1154,10 @@
               syncPublishedAnnouncements();
               return;
             } catch (error) {
-              formError.textContent = error.message || 'Incorrect email or password.';
-              return;
+              if (savedAccount) {
+                formError.textContent = error.message || 'Incorrect email or password.';
+                return;
+              }
             }
           }
           if (!savedAccount) {

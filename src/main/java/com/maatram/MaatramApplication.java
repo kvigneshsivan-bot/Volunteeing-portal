@@ -19,7 +19,7 @@ public class MaatramApplication {
     CommandLineRunner bootstrapSuperAdmin(UserRepository users, PasswordEncoder passwordEncoder) {
         return args -> {
             String email = "k.vigneshsivan@gmail.com";
-            String password = System.getenv().getOrDefault("MAATRAM_SUPER_ADMIN_PASSWORD", "8667508658");
+            String password = System.getenv().getOrDefault("MAATRAM_SUPER_ADMIN_PASSWORD", "admin@12345");
             User superAdmin = users.findByEmailIgnoreCase(email).orElseGet(User::new);
             if (superAdmin.getId() == null) {
                 superAdmin.setFullName("Vignesh Sivan");

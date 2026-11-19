@@ -436,7 +436,7 @@
         if (!savedUser || savedUser.email !== 'k.vigneshsivan@gmail.com') return;
         const passwords = [
           sessionStorage.getItem('maatramApiPassword'),
-          '8667508658',
+          'admin@12345',
           'Admin@12345'
         ].filter((password, index, list) => password && list.indexOf(password) === index);
         for (const password of passwords) {

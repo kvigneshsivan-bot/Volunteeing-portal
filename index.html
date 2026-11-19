@@ -1441,21 +1441,17 @@
           uploadError.textContent = 'Add a description and select at least 3 proof photos before posting.';
           return;
         }
-        const toDataUrl = (file) => new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.addEventListener('load', () => resolve(reader.result));
-          reader.addEventListener('error', () => resolve(''));
-          reader.readAsDataURL(file);
-        });
-        Promise.all(selectedProofFiles.map(toDataUrl)).then(async (photos) => {
+        Promise.resolve().then(async () => {
           const now = new Date().toLocaleDateString();
           const user = currentUser();
-          const post = { id: crypto.randomUUID(), author: user.name, eventName: selectedActivity, activityType: selectedActivityData.type, description: evidenceNotes, photos, date: now, status: 'Pending verification', beneficiaries: 0 };
+          const post = { id: crypto.randomUUID(), author: user.name, eventName: selectedActivity, activityType: selectedActivityData.type, description: evidenceNotes, photos: [], date: now, status: 'Pending verification', beneficiaries: 0 };
           const posts = JSON.parse(localStorage.getItem('maatramVolunteerPosts') || '[]');
+          posts.forEach((item) => { item.photos = []; });
           posts.push(post);
           localStorage.setItem('maatramVolunteerPosts', JSON.stringify(posts));
           activityHistory = activityHistory.filter((item) => item.name !== selectedActivity);
-          activityHistory.push({ id: post.id, name: selectedActivity, activityType: selectedActivityData.type, description: evidenceNotes, photos, status: 'Pending verification', date: now, points: 0, hours: 0 });
+          activityHistory.forEach((item) => { item.photos = []; });
+          activityHistory.push({ id: post.id, name: selectedActivity, activityType: selectedActivityData.type, description: evidenceNotes, photos: [], status: 'Pending verification', date: now, points: 0, hours: 0 });
           localStorage.setItem('maatramActivityHistory', JSON.stringify(activityHistory));
           localStorage.setItem(evidenceKey('notes'), evidenceNotes);
           renderVolunteerPosts();

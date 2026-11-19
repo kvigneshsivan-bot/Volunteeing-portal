@@ -1505,8 +1505,8 @@
             uploadError.textContent = `The post was saved locally, but server submission failed: ${error.message}`;
           }
           document.querySelector('#submitProof').disabled = true;
-        }).catch(() => {
-          uploadError.textContent = 'The proof photos could not be saved. Please try again.';
+        }).catch((error) => {
+          uploadError.textContent = `The contribution could not be submitted: ${error.message || 'Please try again.'}`;
         });
       });
 

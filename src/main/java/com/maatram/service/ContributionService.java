@@ -17,6 +17,7 @@ import java.util.List;
 public class ContributionService {
     private final VolunteerContributionRepository contributions;
     private final VolunteerAchievementRepository achievements;
+    private final EmailNotificationService emailNotificationService;
 
     @Transactional
     public ContributionResponse create(ContributionRequest request, User volunteer) {
@@ -34,12 +35,26 @@ public class ContributionService {
         contribution.setDescription(request.description().trim());
         contribution.setProofPhotos(List.copyOf(request.proofPhotos()));
         contribution.setActivityDate(request.activityDate());
-        return ContributionResponse.from(contributions.save(contribution));
+        ContributionResponse response = ContributionResponse.from(contributions.save(contribution));
+        emailNotificationService.notifyAdmin(response);
+        return response;
     }
 
     @Transactional(readOnly = true)
     public List<ContributionResponse> mine(User volunteer) {
         return contributions.findByVolunteerIdOrderByActivityDateDesc(volunteer.getId())
+                .stream().map(ContributionResponse::from).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ContributionResponse> all() {
+        return contributions.findAllByOrderByActivityDateDesc()
+                .stream().map(ContributionResponse::from).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ContributionResponse> approved() {
+        return contributions.findByStatusOrderByActivityDateDesc(SubmissionStatus.APPROVED)
                 .stream().map(ContributionResponse::from).toList();
     }
 

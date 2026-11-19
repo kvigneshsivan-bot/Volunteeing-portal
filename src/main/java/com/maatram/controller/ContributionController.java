@@ -30,6 +30,16 @@ public class ContributionController {
         return contributionService.mine(volunteer);
     }
 
+    @GetMapping("/feed")
+    public List<ContributionResponse> feed() {
+        return contributionService.approved();
+    }
+
+    @GetMapping("/admin")
+    public List<ContributionResponse> admin() {
+        return contributionService.all();
+    }
+
     @GetMapping("/mine/achievement")
     public AchievementResponse achievement(@AuthenticationPrincipal User volunteer) {
         return contributionService.achievement(volunteer);

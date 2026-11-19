@@ -15,6 +15,13 @@ machine or hosting platform; do not add credential values to source code:
 - `TWILIO_AUTH_TOKEN`
 - `TWILIO_FROM_NUMBER`
 
+Contribution review email notifications use Resend. Add these environment variables to the
+Render service (or attach the environment group containing them):
+
+- `RESEND_API_KEY`
+- `ADMIN_EMAIL` (defaults to `k.vigneshsivan@gmail.com`)
+- `MAIL_FROM` (use a verified sender; Resend's `onboarding@resend.dev` works for initial testing)
+
 The Admin dashboard's **SMS all volunteers** action sends to volunteers with saved
 mobile numbers. Indian 10-digit numbers are normalized to `+91`.
 

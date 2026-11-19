@@ -249,7 +249,7 @@
 
         <section class="app-page" id="leaderboardPage" hidden>
           <div class="page-heading"><div><p class="eyebrow">Recognition</p><h1>Leaderboard & achievements</h1><p class="intro">Celebrate volunteers making a difference.</p></div></div>
-          <div class="leaderboard-full-card"><h2>Overall leaderboard</h2><div id="leaderboardPageList"><p class="muted">Complete activities to appear on the leaderboard.</p></div></div>
+          <div class="leaderboard-full-card"><h2>Overall leaderboard</h2><p class="muted">Approved volunteering contributions only.</p><div id="leaderboardPageList"><p class="muted">Complete activities to appear on the leaderboard.</p></div></div>
           <div class="badge-page-grid"><article><strong>First Activity</strong><span>Complete your first verified activity.</span></article><article><strong>100 Points</strong><span>Earn 100 Gratitude Points.</span></article><article><strong>Community Champion</strong><span>Make a lasting community impact.</span></article></div>
         </section>
 
@@ -299,7 +299,7 @@
             </form>
             <p id="smsBroadcastStatus" class="muted" role="status"></p>
           </div>
-          <div class="management-panel announcement-admin-panel"><h2>Volunteer requirement announcement</h2><p class="muted">Create a LinkedIn-style event post and publish it on the Home page.</p><form id="announcementForm" class="announcement-form"><input name="title" placeholder="Event title" required /><textarea name="description" placeholder="Event description" required></textarea><div><input name="date" type="date" required /><input name="time" type="time" required /><input name="location" placeholder="Location" required /></div><div><input name="required" type="number" min="1" placeholder="Volunteers required" required /><input name="skills" placeholder="Skills / eligibility" /><input name="deadline" type="date" required /></div><label class="file-upload">Event image or poster<input name="image" id="announcementImage" type="file" accept="image/*" /></label><img id="announcementImagePreview" class="announcement-image-preview" alt="Poster preview" hidden /><textarea name="instructions" placeholder="Additional instructions"></textarea><div class="announcement-form-actions"><button class="primary-button" id="announcementSubmitButton" type="submit">Publish announcement <span>→</span></button><button class="secondary-button" id="cancelAnnouncementEdit" type="button" hidden>Cancel edit</button></div></form><div id="adminAnnouncementList"></div><div id="adminVolunteerRegistrations"></div></div>
+          <div class="management-panel announcement-admin-panel"><h2>Volunteer requirement announcement</h2><p class="muted">Create a LinkedIn-style event post and publish it on the Home page.</p><form id="announcementForm" class="announcement-form"><input name="title" placeholder="Event title" required /><textarea name="description" placeholder="Event description" required></textarea><div><input name="date" type="date" required /><input name="time" type="time" required /><input name="location" placeholder="Location" required /></div><div><input name="required" type="number" min="1" placeholder="Volunteers required" required /><input name="skills" placeholder="Skills / eligibility" /><input name="deadline" type="date" required /></div><label class="file-upload">Event image or poster<input name="image" id="announcementImage" type="file" accept="image/*" /></label><img id="announcementImagePreview" class="announcement-image-preview" alt="Poster preview" hidden /><textarea name="instructions" placeholder="Additional instructions"></textarea><div class="announcement-form-actions"><button class="primary-button" id="announcementSubmitButton" type="submit">Publish announcement <span>→</span></button><button class="secondary-button" id="cancelAnnouncementEdit" type="button" hidden>Cancel edit</button></div></form><div id="adminAnnouncementList"></div><div id="adminVolunteerRegistrations"></div><div id="adminContributionList"></div></div>
         </section>
       </main>
     </div>
@@ -670,6 +670,7 @@
         }
         applyRoleVisibility();
         renderDashboard();
+        syncVolunteerContributions();
       }
 
       function getLevel(points) {
@@ -795,10 +796,74 @@
       }
 
       function renderVolunteerPosts() {
-        const posts = JSON.parse(localStorage.getItem('maatramVolunteerPosts') || '[]');
+        const posts = JSON.parse(localStorage.getItem('maatramVolunteerPosts') || '[]')
+          .filter((post) => post.status === 'APPROVED' || post.status === 'Approved');
         document.querySelector('#volunteerPostFeed').innerHTML = posts.length
           ? posts.slice().reverse().map((post) => `<article class="volunteer-post-card"><div class="volunteer-post-header"><span class="avatar">${escapeHTML((post.author || 'V').split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toUpperCase())}</span><div><strong>${escapeHTML(post.author || 'Volunteer')}</strong><small>${escapeHTML(post.date)} · ${escapeHTML(post.activityType)}</small></div><span class="post-status">${escapeHTML(post.status)}</span></div><h3>${escapeHTML(post.eventName)}</h3><p>${escapeHTML(post.description)}</p><div class="volunteer-post-photos">${(post.photos || []).map((photo) => `<img src="${photo}" alt="Proof from ${escapeHTML(post.eventName)}" />`).join('')}</div></article>`).join('')
           : '<p class="muted">Volunteer contributions will appear here after they are posted.</p>';
+      }
+
+      function renderLeaderboard(contributions) {
+        const container = document.querySelector('#leaderboardPageList');
+        if (!container) return;
+        const counts = contributions.filter((item) => item.status === 'APPROVED').reduce((result, item) => {
+          result[item.volunteerName] = (result[item.volunteerName] || 0) + 1;
+          return result;
+        }, {});
+        const rows = Object.entries(counts).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+        container.innerHTML = rows.length
+          ? rows.map(([name, count], index) => {
+            const badge = count >= 25 ? 'Gold' : count >= 10 ? 'Silver' : 'Bronze';
+            return `<div class="leaderboard-row"><span>${index + 1}</span><strong>${escapeHTML(name)}</strong><span>${count} approved activities</span><b>${badge}</b></div>`;
+          }).join('')
+          : '<p class="muted">Complete activities to appear on the leaderboard.</p>';
+      }
+
+      function renderAdminContributions(posts) {
+        const container = document.querySelector('#adminContributionList');
+        if (!container) return;
+        const pending = posts.filter((post) => post.status === 'PENDING');
+        container.innerHTML = `<h3>Volunteer proof submissions${pending.length ? ` · ${pending.length} pending notification${pending.length === 1 ? '' : 's'}` : ''}</h3>` +
+          (posts.length
+            ? posts.map((post) => `<article class="management-panel"><strong>${escapeHTML(post.volunteerName)}</strong><p>${escapeHTML(post.eventName)} · ${escapeHTML(post.activityDate)} · ${escapeHTML(post.status)}</p><p>${escapeHTML(post.description)}</p><div class="volunteer-post-photos">${(post.proofPhotos || []).map((photo) => `<img src="${photo}" alt="Proof from ${escapeHTML(post.eventName)}" />`).join('')}</div>${post.status === 'PENDING' ? `<button class="primary-button approve-contribution" data-id="${post.id}" type="button">Approve contribution</button>` : '<p class="post-status">Approved and visible to volunteers</p>'}</article>`).join('')
+            : '<p class="muted">No volunteer proof submissions yet.</p>');
+        document.querySelectorAll('.approve-contribution').forEach((button) => button.addEventListener('click', async () => {
+          button.disabled = true;
+          try {
+            await apiRequest(`/contributions/${button.dataset.id}/status?status=APPROVED`, { method: 'PATCH' });
+            await syncVolunteerContributions();
+          } catch (error) {
+            button.disabled = false;
+            window.alert(error.message);
+          }
+        }));
+      }
+
+      async function syncVolunteerContributions() {
+        try {
+          const endpoint = currentRole() === 'SUPER_ADMIN' ? '/contributions/admin' : '/contributions/feed';
+          const contributions = await apiRequest(endpoint);
+          const posts = contributions.map((item) => ({
+            id: String(item.id),
+            author: item.volunteerName,
+            eventName: item.eventName,
+            activityType: item.activityType,
+            description: item.description,
+            photos: item.proofPhotos || [],
+            date: item.activityDate,
+            status: item.status,
+            beneficiaries: 0
+          }));
+          localStorage.setItem('maatramVolunteerPosts', JSON.stringify(posts));
+          renderVolunteerPosts();
+          renderLeaderboard(contributions);
+          renderAdminContributions(contributions);
+        } catch (error) {
+          if (currentRole() === 'SUPER_ADMIN') {
+            const container = document.querySelector('#adminContributionList');
+            if (container) container.innerHTML = `<p class="muted">${escapeHTML(error.message)}</p>`;
+          }
+        }
       }
 
       function renderAdminAnnouncements() {
@@ -1011,6 +1076,7 @@
         if (page === 'admin') {
           renderAdminAnnouncements();
           syncAdminAnnouncements();
+          syncVolunteerContributions();
         }
         document.querySelector('#dashboard').scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
@@ -1393,6 +1459,7 @@
           renderVolunteerPosts();
           renderDashboard();
           try {
+            let proofPhotoUrls = [];
             if (maatramSupabase) {
               const { data: sessionData } = await maatramSupabase.auth.getSession();
               const studentId = sessionData.session?.user?.id;
@@ -1409,6 +1476,7 @@
                     .getPublicUrl(path);
                   photoUrls.push(publicUrl.publicUrl);
                 }
+                proofPhotoUrls = photoUrls;
                 const { error } = await maatramSupabase.from('volunteer_contributions').insert({
                   id: post.id,
                   student_id: studentId,
@@ -1421,9 +1489,23 @@
                 if (error) throw error;
               }
             }
+            if (proofPhotoUrls.length < 3) {
+              throw new Error('Proof photos could not be uploaded. Please sign in again and retry.');
+            }
+            await apiRequest('/contributions', {
+              method: 'POST',
+              body: JSON.stringify({
+                eventName: selectedActivity,
+                activityType: selectedActivityData.type,
+                description: evidenceNotes,
+                proofPhotos: proofPhotoUrls,
+                activityDate: new Date().toISOString().slice(0, 10)
+              })
+            });
+            await syncVolunteerContributions();
             uploadError.textContent = 'Your volunteering post was published and saved for verification.';
           } catch (error) {
-            uploadError.textContent = `The post was saved locally, but Supabase storage failed: ${error.message}`;
+            uploadError.textContent = `The post was saved locally, but server submission failed: ${error.message}`;
           }
           document.querySelector('#submitProof').disabled = true;
         }).catch(() => {

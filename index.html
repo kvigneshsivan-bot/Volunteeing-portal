@@ -1472,20 +1472,20 @@
                 });
                 if (!signIn.error) studentId = signIn.data.user?.id;
               }
+              const photoUrls = [];
+              for (const file of selectedProofFiles) {
+                const path = `${studentId || 'anonymous'}/${crypto.randomUUID()}-${file.name}`;
+                const { error: uploadError } = await maatramSupabase.storage
+                  .from('volunteer-contributions')
+                  .upload(path, file, { upsert: false });
+                if (uploadError) throw uploadError;
+                const { data: publicUrl } = maatramSupabase.storage
+                  .from('volunteer-contributions')
+                  .getPublicUrl(path);
+                photoUrls.push(publicUrl.publicUrl);
+              }
+              proofPhotoUrls = photoUrls;
               if (studentId) {
-                const photoUrls = [];
-                for (const file of selectedProofFiles) {
-                  const path = `${studentId}/${crypto.randomUUID()}-${file.name}`;
-                  const { error: uploadError } = await maatramSupabase.storage
-                    .from('volunteer-contributions')
-                    .upload(path, file, { upsert: false });
-                  if (uploadError) throw uploadError;
-                  const { data: publicUrl } = maatramSupabase.storage
-                    .from('volunteer-contributions')
-                    .getPublicUrl(path);
-                  photoUrls.push(publicUrl.publicUrl);
-                }
-                proofPhotoUrls = photoUrls;
                 const { error } = await maatramSupabase.from('volunteer_contributions').insert({
                   id: post.id,
                   student_id: studentId,

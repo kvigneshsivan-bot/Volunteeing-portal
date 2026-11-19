@@ -1485,7 +1485,8 @@
             if (proofPhotoUrls.length < 3) {
               throw new Error('Proof photos could not be uploaded. Please sign in again and retry.');
             }
-            await apiRequest('/contributions', {
+            uploadError.textContent = 'Submitting your contribution...';
+            const contributionRequest = {
               method: 'POST',
               body: JSON.stringify({
                 eventName: selectedActivity,
@@ -1494,7 +1495,25 @@
                 proofPhotos: proofPhotoUrls,
                 activityDate: new Date().toISOString().slice(0, 10)
               })
-            });
+            };
+            try {
+              await apiRequest('/contributions', contributionRequest);
+            } catch (error) {
+              if (!apiPassword || !/401|403|Unauthorized|Forbidden/i.test(error.message)) throw error;
+              await registerBackendUser({
+                name: user.name,
+                email: user.email,
+                maatramId: user.maatramId,
+                mobile: user.mobile,
+                year: user.year,
+                college: user.college,
+                department: user.department,
+                zone: user.zone,
+                zoneInchargeName: user.zoneInchargeName,
+                profilePhoto: user.profilePhoto || ''
+              }, apiPassword);
+              await apiRequest('/contributions', contributionRequest);
+            }
             await syncVolunteerContributions();
             uploadError.textContent = 'Your volunteering post was published and saved for verification.';
           } catch (error) {

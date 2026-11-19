@@ -1049,51 +1049,6 @@
             }
           }
           if (!savedAccount) {
-            try {
-              if (!maatramSupabase) throw new Error('Supabase is not configured.');
-              const { data, error } = await maatramSupabase.auth.signInWithPassword({
-                email: user.email,
-                password: user.password
-              });
-              if (!error) {
-                const { data: profile, error: profileError } = await maatramSupabase
-                  .from('profiles')
-                  .select('*')
-                  .eq('id', data.user.id)
-                  .maybeSingle();
-                if (profileError) throw profileError;
-                if (profile) {
-                  supabaseProfile = profile;
-                  const savedProfile = {
-                    name: profile.name,
-                    maatramId: profile.register_number,
-                    department: profile.department,
-                    year: profile.year,
-                    mobile: profile.contact_number,
-                    college: profile.college_name,
-                    zone: profile.zone,
-                    zoneInchargeName: profile.zone_incharge_name,
-                    email: profile.email,
-                    profilePhoto: profile.profile_photo_url || '',
-                    role: profile.role
-                  };
-                  savedAccount = { email: profile.email, maatramId: profile.register_number, role: profile.role };
-                  localStorage.setItem('maatramAccount', JSON.stringify(savedAccount));
-                  localStorage.setItem('maatramUser', JSON.stringify(savedProfile));
-                  apiPassword = user.password;
-                  sessionStorage.setItem('maatramApiPassword', user.password);
-                  showDashboard(savedProfile);
-                  syncPublishedAnnouncements();
-                  return;
-                }
-              }
-            } catch (error) {
-              if (!/invalid login credentials/i.test(error.message || '') &&
-                  !/email not confirmed/i.test(error.message || '')) {
-                formError.textContent = error.message;
-                return;
-              }
-            }
             pendingCredentials = { email: user.email, password: user.password };
             formError.textContent = '';
             showProfileStep();

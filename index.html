@@ -460,6 +460,50 @@
             academicYear: user.year
           })
         });
+        if (maatramSupabase) {
+          try {
+            let authUser = (await maatramSupabase.auth.getSession()).data.session?.user || null;
+            if (!authUser) {
+              const signIn = await maatramSupabase.auth.signInWithPassword({
+                email: user.email,
+                password
+              });
+              if (!signIn.error && signIn.data.session) {
+                authUser = signIn.data.user;
+              } else {
+                const signUp = await maatramSupabase.auth.signUp({
+                  email: user.email,
+                  password,
+                  options: {
+                    data: { full_name: user.name },
+                    emailRedirectTo: window.location.href
+                  }
+                });
+                if (!signUp.error) authUser = signUp.data.user;
+              }
+            }
+            if (authUser) {
+              const { error: profileError } = await maatramSupabase.from('profiles').upsert({
+                id: authUser.id,
+                name: user.name,
+                register_number: user.maatramId,
+                college_name: user.college,
+                department: user.department,
+                year: user.year,
+                zone: user.zone,
+                zone_incharge_name: user.zoneInchargeName,
+                email: user.email,
+                contact_number: user.mobile,
+                profile_photo_url: user.profilePhoto || null,
+                role: data.role
+              }, { onConflict: 'id' });
+              if (profileError) throw profileError;
+              supabaseProfile = null;
+            }
+          } catch (supabaseError) {
+            console.warn('Profile was saved to the API, but Supabase sync failed:', supabaseError);
+          }
+        }
         return {
           id: data.id,
           name: data.fullName,

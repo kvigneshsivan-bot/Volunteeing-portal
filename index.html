@@ -323,6 +323,10 @@
       let selectedProofFiles = [];
       let editingAnnouncementId = null;
       let apiPassword = sessionStorage.getItem('maatramApiPassword') || '';
+      if (savedAccount && !savedUser) {
+        savedAccount = null;
+        localStorage.removeItem('maatramAccount');
+      }
       const apiBaseUrl = window.MAATRAM_API_BASE_URL || 'http://localhost:8080/api';
       const maatramSupabase = window.supabase?.createClient(
         window.MAATRAM_SUPABASE_URL,

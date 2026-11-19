@@ -102,7 +102,7 @@
         </nav>
         <div class="sidebar-footer">
           <div class="help-card"><strong>Need a hand?</strong><span>Our team is here for you.</span><a href="#support">Contact support →</a></div>
-          <a class="nav-link" href="#settings"><span>⚙</span> Settings</a>
+          <a class="nav-link" id="settingsLink" href="#settings"><span>⚙</span> Settings</a>
         </div>
       </aside>
 
@@ -1533,6 +1533,11 @@
         link.classList.add('active');
         showPage(link.dataset.page);
       }));
+
+      document.querySelector('#settingsLink').addEventListener('click', (event) => {
+        event.preventDefault();
+        document.querySelector('#editProfileButton').click();
+      });
 
       document.querySelectorAll('.volunteer-type-card').forEach((card) => card.addEventListener('click', () => {
         renderVolunteerDetails(card.dataset.type);

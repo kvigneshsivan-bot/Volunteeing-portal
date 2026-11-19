@@ -1464,7 +1464,14 @@
             let proofPhotoUrls = [];
             if (maatramSupabase) {
               const { data: sessionData } = await maatramSupabase.auth.getSession();
-              const studentId = sessionData.session?.user?.id;
+              let studentId = sessionData.session?.user?.id;
+              if (!studentId && apiPassword && user.email) {
+                const signIn = await maatramSupabase.auth.signInWithPassword({
+                  email: user.email,
+                  password: apiPassword
+                });
+                if (!signIn.error) studentId = signIn.data.user?.id;
+              }
               if (studentId) {
                 const photoUrls = [];
                 for (const file of selectedProofFiles) {
